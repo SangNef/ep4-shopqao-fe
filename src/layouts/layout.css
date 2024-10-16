@@ -1,0 +1,26 @@
+/* CSS for AdminLayout */
+
+/* Đặt kích thước và bố cục cho toàn bộ màn hình */
+.main {
+    display: flex;
+    height: 100vh;
+    background-color: #f4f6f9;
+    /* Màu nền chung cho khu vực nội dung */
+}
+
+/* Sidebar - chiếm 250px chiều ngang, luôn cố định */
+.main .ant-layout-sider {
+    width: 250px !important;
+    /* Đảm bảo sidebar luôn có kích thước cố định */
+    flex-shrink: 0;
+}
+
+/* Phần content sẽ nằm bên phải của sidebar và chiếm toàn bộ chiều rộng còn lại */
+.content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    background-color: #fff;
+    /* Màu nền cho khu vực content */
+    overflow: auto;
+}
