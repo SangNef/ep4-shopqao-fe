@@ -1,54 +1,25 @@
-import React, { useState } from "react";
-import { Table, Button, Breadcrumb, Modal, Form, Input, InputNumber, Checkbox, Select } from "antd";
+import React, { useEffect, useState } from "react";
+import { Table, Button, Breadcrumb, Modal, Form, Input, InputNumber, Checkbox } from "antd";
 import { EditOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons";
-
-const { Option } = Select;
-
-const data = [
-  {
-    key: "1",
-    name: "Product 1",
-    description: "Description for Product 1",
-    price: 100,
-    qty: 10,
-    status: true,
-    images: [{ id: 1, image_url: "image1.jpg" }],
-    sizes: [
-      { id: 1, size: 38 },
-      { id: 2, size: 40 },
-    ],
-    colors: [
-      { id: 1, color: "Red" },
-      { id: 2, color: "Blue" },
-    ],
-  },
-  {
-    key: "2",
-    name: "Product 2",
-    description: "Description for Product 2",
-    price: 200,
-    qty: 5,
-    status: false,
-    images: [{ id: 2, image_url: "image2.jpg" }],
-    sizes: [
-      { id: 3, size: 42 },
-      { id: 4, size: 44 },
-    ],
-    colors: [
-      { id: 3, color: "Green" },
-      { id: 4, color: "Yellow" },
-    ],
-  },
-];
+import { getProducts, createProduct } from "../../api/product";
 
 const Product = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
-
-  const [images, setImages] = useState([]);
   const [sizes, setSizes] = useState([]);
   const [colorInput, setColorInput] = useState('');
   const [colors, setColors] = useState([]);
+  const [products, setProducts] = useState([]);
+
+  const fetchProduct = async () => {
+    const response = await getProducts();
+    console.log(response);
+    setProducts(response);
+  };
+
+  useEffect(() => {
+    fetchProduct();
+  }, []);
 
   const showModal = () => {
     setIsModalVisible(true);
@@ -56,69 +27,59 @@ const Product = () => {
 
   const handleCancel = () => {
     setIsModalVisible(false);
-    form.resetFields(); // reset form when modal is closed
+    form.resetFields();
+    setSizes([]); // Clear sizes on cancel
+    setColors([]); // Clear colors on cancel
   };
 
-  const handleCreate = () => {
-    form
-      .validateFields()
-      .then((values) => {
-        console.log("New product:", values);
-        // Thêm sản phẩm mới vào danh sách hoặc gọi API ở đây
-        setIsModalVisible(false);
-        form.resetFields();
-      })
-      .catch((info) => {
-        console.log("Validate Failed:", info);
-      });
-  };
+  const handleCreate = async () => {
+    try {
+      const values = await form.validateFields();
+      console.log("New product:", { ...values, sizes, colors });
 
-  const handleView = (key) => {
-    const product = data.find(item => item.key === key);
-    console.log('View product:', product);
-    // Hiển thị chi tiết sản phẩm ở đây (có thể là một modal khác hoặc một trang khác)
-  };
-
-  const handleEdit = (key) => {
-    const product = data.find(item => item.key === key);
-    console.log('Edit product:', product);
-    // Hiển thị modal với thông tin sản phẩm để chỉnh sửa
-    // Bạn có thể thiết lập dữ liệu vào form ở đây
-    setIsModalVisible(true);
-    form.setFieldsValue(product);
-  };
-
-  const handleDelete = (key) => {
-    console.log('Delete product with key:', key);
-    // Thực hiện xóa sản phẩm ở đây
-  };
-
-  const handleAddImages = (e) => {
-    const files = Array.from(e.target.files);
-    const newImages = [];
-    
-    files.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        newImages.push(reader.result);
-        if (newImages.length === files.length) {
-          setImages((prevImages) => [...prevImages, ...newImages]);
-        }
+      const productData = {
+        ...values,
+        sizes,
+        colors,
       };
-      reader.readAsDataURL(file);
-    });
 
-    e.target.value = null; // Clear input after adding
+      // Call the API to create a new product
+      const response = await createProduct(productData);
+      console.log("Product created:", response);
+
+      await fetchProduct(); // Fetch products again to update the list
+      setIsModalVisible(false);
+      form.resetFields();
+      setSizes([]);
+      setColors([]);
+    } catch (info) {
+      console.log("Validate Failed:", info);
+    }
   };
 
-  const handleSizeChange = (checkedValues) => {
-    setSizes(checkedValues);
+  const handleView = (id) => {
+    console.log("View product with ID:", id);
+    // Add logic for viewing product details
+  };
+
+  const handleEdit = (id) => {
+    console.log("Edit product with ID:", id);
+    // Add logic for editing product details
+  };
+
+  const handleDelete = (id) => {
+    console.log("Delete product with ID:", id);
+    // Add logic for deleting the product
+  };
+
+  const handleSizeChange = (selectedSizes) => {
+    setSizes(selectedSizes);
   };
 
   const handleAddColor = () => {
     if (colorInput) {
-      setColors([...colors, colorInput]);
-      setColorInput('');
+      setColors((prevColors) => [...prevColors, colorInput]);
+      setColorInput(''); // Clear the input after adding
     }
   };
 
@@ -148,22 +109,33 @@ const Product = () => {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      render: (status) => (status ? "Active" : "Inactive"),
+      render: (status) => (
+        <span
+          style={{
+            padding: "5px 10px",
+            borderRadius: "4px",
+            color: status ? "white" : "black",
+            backgroundColor: status ? "green" : "red",
+          }}
+        >
+          {status ? "Active" : "Inactive"}
+        </span>
+      ),
     },
     {
       title: "Actions",
       key: "actions",
       render: (text, record) => (
         <span>
-          <Button type="link" icon={<EyeOutlined />} onClick={() => handleView(record.key)}>
+          <Button type="link" icon={<EyeOutlined />} onClick={() => handleView(record.id)}>
             View
           </Button>
           |
-          <Button type="link" style={{ color: "#FFA500" }} icon={<EditOutlined />} onClick={() => handleEdit(record.key)}>
+          <Button type="link" style={{ color: "#FFA500" }} icon={<EditOutlined />} onClick={() => handleEdit(record.id)}>
             Edit
           </Button>
           |
-          <Button type="link" style={{ color: "red" }} icon={<DeleteOutlined />} onClick={() => handleDelete(record.key)}>
+          <Button type="link" style={{ color: "red" }} icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)}>
             Delete
           </Button>
         </span>
@@ -181,7 +153,7 @@ const Product = () => {
       <Button type="primary" style={{ marginBottom: "20px" }} onClick={showModal}>
         Create
       </Button>
-      <Table columns={columns} dataSource={data} pagination={true} />
+      <Table columns={columns} dataSource={products} pagination={true} loading={!products.length} />
 
       <Modal
         title="Create New Product"
@@ -229,15 +201,17 @@ const Product = () => {
             <Checkbox>Active</Checkbox>
           </Form.Item>
 
-          {/* Images Section */}
+          {/* Remove Images Section Temporarily */}
+          {/* 
           <Form.Item label="Product Images">
             <Input type="file" multiple accept="image/*" onChange={handleAddImages} />
             <div style={{ display: 'flex', marginTop: '10px' }}>
               {images.map((img, index) => (
-                <img key={index} src={img} alt={`Product Image ${index}`} style={{ width: '50px', marginRight: '5px' }} />
+                <img key={index} src={img} alt={`Product Image ${index}`} style={{ width: '50px', marginRight: '5px', border: '1px solid #ddd', borderRadius: '4px' }} />
               ))}
             </div>
           </Form.Item>
+          */}
 
           {/* Sizes Section */}
           <Form.Item label="Product Sizes">
