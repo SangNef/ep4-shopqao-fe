@@ -21,7 +21,7 @@ const Login = () => {
             } else {
                 // Lưu user vào localStorage
                 localStorage.setItem("user", JSON.stringify(response));
-                // navigate("/"); // Điều hướng về trang chính
+                navigate("/"); // Điều hướng về trang chính
             }
         } catch (error) {
             console.error("Error during login:", error);

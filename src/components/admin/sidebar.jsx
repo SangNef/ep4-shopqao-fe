@@ -1,7 +1,7 @@
 import React from 'react';
 import { Layout, Menu } from 'antd';
 import { Link } from 'react-router-dom'; // Import Link
-import { DashboardOutlined, UserOutlined, SettingOutlined, FileOutlined, BellOutlined, ShoppingOutlined } from '@ant-design/icons';
+import { DashboardOutlined, UserOutlined, SettingOutlined, FileOutlined, BellOutlined, ShoppingOutlined, OrderedListOutlined } from '@ant-design/icons';
 
 const { Sider } = Layout;
 
@@ -9,37 +9,43 @@ const menuItems = [
   {
     key: 'dashboard',
     label: 'Dashboard',
-    link: '/',
+    link: '/admin',
     icon: <DashboardOutlined />,
   },
   {
     key: 'products',
     label: 'Products',
-    link: '/products',
+    link: '/admin/products',
     icon: <ShoppingOutlined />,
+  },
+  {
+    key: 'orders', // New menu item key
+    label: 'Orders', // Label for the menu item
+    link: '/admin/orders', // Link to the orders page
+    icon: <OrderedListOutlined />, // Icon for the orders menu item
   },
   {
     key: 'users',
     label: 'Users',
-    link: '/users',
+    link: '/admin/users',
     icon: <UserOutlined />,
   },
   {
     key: 'notifications',
     label: 'Notifications',
-    link: '/notifications',
+    link: '/admin/notifications',
     icon: <BellOutlined />,
   },
   {
     key: 'files',
     label: 'Files',
-    link: '/files',
+    link: '/admin/files',
     icon: <FileOutlined />,
   },
   {
     key: 'settings',
     label: 'Settings',
-    link: '/settings',
+    link: '/admin/settings',
     icon: <SettingOutlined />,
   },
 ];
