@@ -1,14 +1,16 @@
 import React, { useState } from "react";
-import { Modal, Form, Input, InputNumber, Checkbox, Button } from "antd";
+import { Modal, Form, Input, InputNumber, Checkbox, Button, Select } from "antd";
 import axios from 'axios';
+
+const { Option } = Select;
 
 const Create = ({ isModalVisible, onCreate, onCancel }) => {
   const [form] = Form.useForm();
   const [sizes, setSizes] = useState([]);
   const [colorInput, setColorInput] = useState('');
   const [colors, setColors] = useState([]);
-  const [image, setImage] = useState(null); // State to hold the image file
-  const [imageUrl, setImageUrl] = useState(''); // State to hold the uploaded image URL
+  const [image, setImage] = useState(null);
+  const [imageUrl, setImageUrl] = useState('');
 
   const handleCreate = async () => {
     try {
@@ -17,52 +19,51 @@ const Create = ({ isModalVisible, onCreate, onCancel }) => {
         ...values,
         sizes,
         colors,
-        imageUrl, // Add the image URL to the product data
+        imageUrl,
       };
-      onCreate(productData); // Gọi hàm tạo sản phẩm với dữ liệu
+      onCreate(productData);
       form.resetFields();
-      setSizes([]); // Reset kích thước
-      setColors([]); // Reset màu sắc
-      setImage(null); // Reset hình ảnh
-      setImageUrl(''); // Reset URL hình ảnh
+      setSizes([]);
+      setColors([]);
+      setImage(null);
+      setImageUrl('');
     } catch (info) {
       console.log("Validate Failed:", info);
     }
   };
 
   const handleSizeChange = (selectedSizes) => {
-    setSizes(selectedSizes); // Cập nhật kích thước đã chọn
+    setSizes(selectedSizes);
   };
 
   const handleAddColor = () => {
     if (colorInput) {
-      setColors((prevColors) => [...prevColors, colorInput]); // Thêm màu vào danh sách
-      setColorInput(''); // Xóa input sau khi thêm
+      setColors((prevColors) => [...prevColors, colorInput]);
+      setColorInput('');
     }
   };
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImage(file); // Lưu trữ file hình ảnh
-      const url = await uploadImage(file); // Tải hình ảnh lên và lấy URL
-      setImageUrl(url); // Đặt URL hình ảnh đã tải lên
+      setImage(file);
+      const url = await uploadImage(file);
+      setImageUrl(url);
     }
   };
 
-  // Function to upload image to Cloudinary
   const uploadImage = async (file) => {
     const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dx2o9ki2g/image/upload";
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', 'unsigned_uploads'); // Sử dụng tên preset mới đã tạo
+    formData.append('upload_preset', 'unsigned_uploads');
   
     try {
       const response = await axios.post(CLOUDINARY_URL, formData);
-      return response.data.secure_url; // Return the secure URL from the response
+      return response.data.secure_url;
     } catch (error) {
       console.error("Error uploading image:", error);
-      return ''; // Trả về chuỗi rỗng nếu có lỗi
+      return '';
     }
   };
 
@@ -84,6 +85,7 @@ const Create = ({ isModalVisible, onCreate, onCancel }) => {
         >
           <Input placeholder="Enter product name" />
         </Form.Item>
+
         <Form.Item
           name="price"
           label="Price"
@@ -91,6 +93,7 @@ const Create = ({ isModalVisible, onCreate, onCancel }) => {
         >
           <InputNumber min={0} style={{ width: '100%' }} placeholder="Enter product price" />
         </Form.Item>
+
         <Form.Item
           name="qty"
           label="Quantity"
@@ -98,6 +101,7 @@ const Create = ({ isModalVisible, onCreate, onCancel }) => {
         >
           <InputNumber min={0} style={{ width: '100%' }} placeholder="Enter product quantity" />
         </Form.Item>
+
         <Form.Item
           name="description"
           label="Description"
@@ -105,6 +109,16 @@ const Create = ({ isModalVisible, onCreate, onCancel }) => {
         >
           <Input.TextArea rows={4} placeholder="Enter product description" />
         </Form.Item>
+
+        <Form.Item name="gender" label="Gender" rules={[{ required: true, message: 'Please select a gender!' }]}>
+          <Select placeholder="Select gender">
+            <Option value="man">Man</Option>
+            <Option value="women">Women</Option>
+            <Option value="unisex">Unisex</Option>
+            <Option value="kid">Kid</Option>
+          </Select>
+        </Form.Item>
+
         <Form.Item
           name="status"
           label="Status"
