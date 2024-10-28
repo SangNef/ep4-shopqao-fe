@@ -50,7 +50,7 @@ const ProductDetail = () => {
     <div className="product-container">
       <div className="main-content">
         <div className="image">
-          <img src={product.imageUrl} alt={product.name} />
+          <img src={product.imageUrls?.[0]} alt={product.name} />
         </div>
         <div className="product-info">
           <h2>{product.name}</h2>

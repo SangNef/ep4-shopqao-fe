@@ -1,11 +1,13 @@
-import React, { useState } from "react";
-import { Modal, Form, Input, InputNumber, Checkbox, Button, Select } from "antd";
+// src/components/product/update.js
+import React, { useEffect, useState } from 'react';
+import { Modal, Form, Input, InputNumber, Checkbox, Button, Select } from 'antd';
 import { CloseCircleOutlined } from '@ant-design/icons'; // Import the Close icon
 import axios from 'axios';
+import { updateProduct } from '../../../api/product'; // Import the updateProduct API function
 
 const { Option } = Select;
 
-const Create = ({ isModalVisible, onCreate, onCancel }) => {
+const Update = ({ isModalVisible, onUpdate, onCancel, product }) => {
   const [form] = Form.useForm();
   const [sizes, setSizes] = useState([]);
   const [colorInput, setColorInput] = useState('');
@@ -13,7 +15,24 @@ const Create = ({ isModalVisible, onCreate, onCancel }) => {
   const [images, setImages] = useState([]); // Handle multiple images
   const [imageUrls, setImageUrls] = useState([]); // Store URLs for uploaded images
 
-  const handleCreate = async () => {
+  useEffect(() => {
+    if (product) {
+      // Populate the form with the selected product's data
+      form.setFieldsValue({
+        name: product.name,
+        price: product.price,
+        qty: product.qty,
+        description: product.description,
+        gender: product.gender,
+        status: product.status,
+      });
+      setSizes(product.sizes || []);
+      setColors(product.colors || []);
+      setImageUrls(product.imageUrls || []);
+    }
+  }, [product, form]);
+
+  const handleUpdate = async () => {
     try {
       const values = await form.validateFields();
       const productData = {
@@ -22,7 +41,8 @@ const Create = ({ isModalVisible, onCreate, onCancel }) => {
         colors,
         imageUrls, // Use the array of image URLs
       };
-      onCreate(productData);
+      await updateProduct(product.id, productData); // Call the update API
+      onUpdate(); // Call the onUpdate function to refresh the product list
       form.resetFields();
       setSizes([]);
       setColors([]);
@@ -79,11 +99,11 @@ const Create = ({ isModalVisible, onCreate, onCancel }) => {
 
   return (
     <Modal
-      title="Create New Product"
+      title="Update Product"
       visible={isModalVisible}
-      onOk={handleCreate}
+      onOk={handleUpdate}
       onCancel={onCancel}
-      okText="Create"
+      okText="Update"
       cancelText="Cancel"
       style={{ overflowY: 'auto', maxHeight: '80vh' }}
     >
@@ -138,7 +158,7 @@ const Create = ({ isModalVisible, onCreate, onCancel }) => {
         </Form.Item>
 
         <Form.Item label="Product Sizes">
-          <Checkbox.Group onChange={handleSizeChange}>
+          <Checkbox.Group value={sizes} onChange={handleSizeChange}>
             <Checkbox value="S">S</Checkbox>
             <Checkbox value="M">M</Checkbox>
             <Checkbox value="L">L</Checkbox>
@@ -177,4 +197,4 @@ const Create = ({ isModalVisible, onCreate, onCancel }) => {
   );
 };
 
-export default Create;
+export default Update;

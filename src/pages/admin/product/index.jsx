@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Table, Button, Breadcrumb } from "antd";
 import { EditOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons";
-import { getProducts, createProduct } from "../../../api/product";
+import { getProducts, createProduct, updateProduct } from "../../../api/product"; // Import updateProduct
 import Create from './create'; // Import the Create component
+import Update from './update'; // Import the Update component
 
 const Product = () => {
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
+  const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
   const [products, setProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null); // Store the selected product for update
 
   const fetchProduct = async () => {
     const response = await getProducts();
@@ -18,27 +21,37 @@ const Product = () => {
     fetchProduct();
   }, []);
 
-  const showModal = () => {
-    setIsModalVisible(true);
+  const showCreateModal = () => {
+    setIsCreateModalVisible(true);
   };
 
-  const handleCancel = () => {
-    setIsModalVisible(false);
+  const handleCreateCancel = () => {
+    setIsCreateModalVisible(false);
   };
 
   const handleCreate = async (productData) => {
     const response = await createProduct(productData);
     console.log("Product created:", response);
     await fetchProduct(); // Fetch products again to update the list
-    setIsModalVisible(false);
+    setIsCreateModalVisible(false);
   };
 
-  const handleView = (id) => {
-    console.log("View product with ID:", id);
+  const handleEdit = (product) => {
+    setSelectedProduct(product);
+    setIsUpdateModalVisible(true); // Show update modal
   };
 
-  const handleEdit = (id) => {
-    console.log("Edit product with ID:", id);
+  const handleUpdateCancel = () => {
+    setIsUpdateModalVisible(false);
+    setSelectedProduct(null); // Clear selected product
+  };
+
+  const handleUpdate = async (productData) => {
+    const response = await updateProduct(selectedProduct.id, productData);
+    console.log("Product updated:", response);
+    await fetchProduct(); // Fetch products again to update the list
+    setIsUpdateModalVisible(false);
+    setSelectedProduct(null); // Clear selected product
   };
 
   const handleDelete = (id) => {
@@ -55,7 +68,7 @@ const Product = () => {
       title: "Price",
       dataIndex: "price",
       key: "price",
-      render: (text) => `$${text}`,
+      render: (text) => `$${text.toFixed(2)}`, // Format price to 2 decimal places
     },
     {
       title: "Quantity",
@@ -69,10 +82,14 @@ const Product = () => {
     },
     {
       title: "Image",
-      dataIndex: "imageUrl",
-      key: "imageUrl",
-      render: (imageUrl) => (
-        <img src={imageUrl} alt="Product" style={{ width: "50px", height: "50px", objectFit: "cover" }} />
+      dataIndex: "imageUrls",
+      key: "imageUrls",
+      render: (imageUrls) => (
+        imageUrls?.length > 0 ? (
+          <img src={imageUrls[0]} alt="Product" style={{ width: "50px", height: "50px", objectFit: "cover" }} />
+        ) : (
+          <span>No Image</span>
+        )
       ),
     },
     {
@@ -114,16 +131,8 @@ const Product = () => {
       key: "actions",
       render: (text, record) => (
         <span>
-          <Button type="link" icon={<EyeOutlined />} onClick={() => handleView(record.id)}>
-            View
-          </Button>
-          |
-          <Button type="link" style={{ color: "#FFA500" }} icon={<EditOutlined />} onClick={() => handleEdit(record.id)}>
+          <Button type="link" style={{ color: "#FFA500" }} icon={<EditOutlined />} onClick={() => handleEdit(record)}>
             Edit
-          </Button>
-          |
-          <Button type="link" style={{ color: "red" }} icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)}>
-            Delete
           </Button>
         </span>
       ),
@@ -137,15 +146,21 @@ const Product = () => {
         <Breadcrumb.Item>Products</Breadcrumb.Item>
       </Breadcrumb>
       <h1>Product List</h1>
-      <Button type="primary" style={{ marginBottom: "20px" }} onClick={showModal}>
+      <Button type="primary" style={{ marginBottom: "20px" }} onClick={showCreateModal}>
         Create
       </Button>
       <Table columns={columns} dataSource={products} pagination={true} loading={!products.length} rowKey="id" />
       
       <Create 
-        isModalVisible={isModalVisible} 
+        isModalVisible={isCreateModalVisible} 
         onCreate={handleCreate} 
-        onCancel={handleCancel} 
+        onCancel={handleCreateCancel} 
+      />
+      <Update 
+        isModalVisible={isUpdateModalVisible} 
+        onUpdate={handleUpdate} 
+        onCancel={handleUpdateCancel} 
+        product={selectedProduct} // Pass the selected product
       />
     </div>
   );

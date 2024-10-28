@@ -1,4 +1,4 @@
-import { get, post } from "./index";
+import { get, post, put } from "./index";
 
 export const getProducts = async () => {
   return get("/products/all");
@@ -26,4 +26,8 @@ export const getUnisexProducts = async () => {
 
 export const getProductById = async (id) => {
   return get(`/products/${id}`);
+};
+
+export const updateProduct = async (id, data) => {
+  return put(`/products/update/${id}`, data);
 };

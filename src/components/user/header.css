@@ -1,58 +1,117 @@
 .header-container {
-    background-color: #f8f9fa; /* Màu nền nhạt */
-    border-bottom: 1px solid #e9ecef; /* Đường viền dưới */
-    padding: 1rem 2rem; /* Khoảng cách giữa nội dung và viền */
+    background-color: #f8f9fa;
+    /* Màu nền nhạt */
+    border-bottom: 1px solid #e9ecef;
+    /* Đường viền dưới */
+    padding: 1rem 2rem;
+    /* Khoảng cách giữa nội dung và viền */
 }
 
 .header {
     display: flex;
-    justify-content: space-between; /* Giãn cách các phần header */
-    align-items: center; /* Căn giữa theo chiều dọc */
-    max-width: 1120px; /* Độ rộng tối đa */
-    margin: auto; /* Căn giữa */
+    justify-content: space-between;
+    /* Giãn cách các phần header */
+    align-items: center;
+    /* Căn giữa theo chiều dọc */
+    max-width: 1120px;
+    /* Độ rộng tối đa */
+    margin: auto;
+    /* Căn giữa */
 }
 
 .header-left {
     display: flex;
-    align-items: center; /* Căn giữa logo và text */
-    gap: 1rem; /* Khoảng cách giữa các phần tử */
+    align-items: center;
+    /* Căn giữa logo và text */
+    gap: 1rem;
+    /* Khoảng cách giữa các phần tử */
 }
 
 .header-left .logo {
-    font-size: 1.5rem; /* Cỡ chữ logo */
-    font-weight: bold; /* Chữ đậm */
-    color: #f8f9fa; /* Màu chữ logo */
-    background-color: #343a40; /* Màu nền logo */
-    padding: 0.5rem 1rem; /* Khoảng cách giữa chữ và viền */
-    border-radius: 0.5rem; /* Bo tròn viền */
+    font-size: 1.5rem;
+    /* Cỡ chữ logo */
+    font-weight: bold;
+    /* Chữ đậm */
+    color: #f8f9fa;
+    /* Màu chữ logo */
+    background-color: #343a40;
+    /* Màu nền logo */
+    padding: 0.5rem 1rem;
+    /* Khoảng cách giữa chữ và viền */
+    border-radius: 0.5rem;
+    /* Bo tròn viền */
 }
 
 .header-text h1 {
     margin: 0;
     font-size: 1.25rem;
-    color: #495057; /* Màu chữ tiêu đề */
+    color: #495057;
+    /* Màu chữ tiêu đề */
 }
 
 .header-text p {
     margin: 0;
-    font-size: 0.875rem; /* Cỡ chữ nhỏ hơn cho phần mô tả */
-    color: #6c757d; /* Màu chữ mô tả */
+    font-size: 0.875rem;
+    /* Cỡ chữ nhỏ hơn cho phần mô tả */
+    color: #6c757d;
+    /* Màu chữ mô tả */
 }
 
 .navbar {
     display: flex;
-    align-items: center; /* Căn giữa các mục navbar */
-    gap: 1rem; /* Khoảng cách giữa các mục */
+    align-items: center;
+    /* Căn giữa các mục navbar */
+    gap: 1rem;
+    /* Khoảng cách giữa các mục */
 }
 
 li.nav-item {
-    color: #495057; /* Màu chữ của mục */
-    font-size: 1rem; /* Cỡ chữ */
-    cursor: pointer; /* Con trỏ chuột thành dạng trỏ tay */
-    list-style: none; /* Bỏ ký hiệu dấu chấm đầu dòng */
+    color: #495057;
+    /* Màu chữ của mục */
+    font-size: 1rem;
+    /* Cỡ chữ */
+    cursor: pointer;
+    /* Con trỏ chuột thành dạng trỏ tay */
+    list-style: none;
+    /* Bỏ ký hiệu dấu chấm đầu dòng */
 }
 
 li.nav-item:hover {
-    color: #212529; /* Màu đậm hơn khi hover */
-    transition: color 0.3s ease; /* Hiệu ứng chuyển màu khi hover */
+    color: #212529;
+    /* Màu đậm hơn khi hover */
+    transition: color 0.3s ease;
+    /* Hiệu ứng chuyển màu khi hover */
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+}
+
+.user-menu {
+    display: flex;
+    align-items: center;
+}
+
+.user-name {
+    margin-right: 10px;
+}
+
+.logout-button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #007bff;
+    font-weight: bold;
+}
+
+.auth-links {
+    display: flex;
+    gap: 10px;
+}
+
+.auth-link {
+    text-decoration: none;
+    color: #007bff;
+    font-weight: bold;
 }

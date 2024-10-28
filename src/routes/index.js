@@ -13,6 +13,8 @@ import CheckoutProduct from "../pages/checkout/product";
 import ProductDetail from "../pages/product/detail";
 import Checkout from "../pages/checkout/checkout";
 import Order from "../pages/admin/order";
+import OrderDetail from "../pages/admin/order/detail";
+import Voucher from "../pages/admin/voucher";
 
 const routes = [
   {
@@ -53,6 +55,16 @@ const routes = [
   {
     path: "/admin/orders",
     component: Order,
+    layout: AdminLayout,
+  },
+  {
+    path: "/admin/order/:id",
+    component: OrderDetail,
+    layout: AdminLayout,
+  },
+  {
+    path: "/admin/vouchers",
+    component: Voucher,
     layout: AdminLayout,
   }
 ];
