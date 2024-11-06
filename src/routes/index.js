@@ -15,6 +15,8 @@ import Checkout from "../pages/checkout/checkout";
 import Order from "../pages/admin/order";
 import OrderDetail from "../pages/admin/order/detail";
 import Voucher from "../pages/admin/voucher";
+import ShippingAddress from "../pages/profile/address";
+import Cart from "../pages/cart";
 
 const routes = [
   {
@@ -38,8 +40,18 @@ const routes = [
     layout: UserLayout,
   },
   {
+    path: "/cart",
+    component: Cart,
+    layout: UserLayout,
+  },
+  {
     path: "/checkout",
     component: Checkout,
+    layout: UserLayout,
+  },
+  {
+    path: "/shipping-address",
+    component: ShippingAddress,
     layout: UserLayout,
   },
   {

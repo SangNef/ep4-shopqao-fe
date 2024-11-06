@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Table, Button, Breadcrumb } from "antd";
-import { EditOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons";
-import { getProducts, createProduct, updateProduct } from "../../../api/product"; // Import updateProduct
-import Create from './create'; // Import the Create component
-import Update from './update'; // Import the Update component
+import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import { getProducts, createProduct, updateProduct } from "../../../api/product"; 
+import Create from './create'; 
+import Update from './update'; 
 
 const Product = () => {
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
   const [products, setProducts] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState(null); // Store the selected product for update
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const fetchProduct = async () => {
     const response = await getProducts();
@@ -32,30 +32,31 @@ const Product = () => {
   const handleCreate = async (productData) => {
     const response = await createProduct(productData);
     console.log("Product created:", response);
-    await fetchProduct(); // Fetch products again to update the list
+    await fetchProduct();
     setIsCreateModalVisible(false);
   };
 
   const handleEdit = (product) => {
     setSelectedProduct(product);
-    setIsUpdateModalVisible(true); // Show update modal
+    setIsUpdateModalVisible(true);
   };
 
   const handleUpdateCancel = () => {
     setIsUpdateModalVisible(false);
-    setSelectedProduct(null); // Clear selected product
+    setSelectedProduct(null);
   };
 
   const handleUpdate = async (productData) => {
     const response = await updateProduct(selectedProduct.id, productData);
     console.log("Product updated:", response);
-    await fetchProduct(); // Fetch products again to update the list
+    await fetchProduct();
     setIsUpdateModalVisible(false);
-    setSelectedProduct(null); // Clear selected product
+    setSelectedProduct(null);
   };
 
   const handleDelete = (id) => {
     console.log("Delete product with ID:", id);
+    // Implement the delete functionality here
   };
 
   const columns = [
@@ -68,12 +69,13 @@ const Product = () => {
       title: "Price",
       dataIndex: "price",
       key: "price",
-      render: (text) => `$${text.toFixed(2)}`, // Format price to 2 decimal places
+      render: (text) => `$${text.toFixed(2)}`,
     },
     {
       title: "Quantity",
-      dataIndex: "qty",
-      key: "qty",
+      dataIndex: "variants",
+      key: "quantity",
+      render: (variants) => variants.reduce((acc, variant) => acc + variant.qty, 0), // Total quantity from variants
     },
     {
       title: "Description",
@@ -94,15 +96,15 @@ const Product = () => {
     },
     {
       title: "Sizes",
-      dataIndex: "sizes",
+      dataIndex: "variants",
       key: "sizes",
-      render: (sizes) => sizes.join(", "),
+      render: (variants) => variants.map(v => v.size).join(", "), // Collect sizes from variants
     },
     {
       title: "Colors",
-      dataIndex: "colors",
+      dataIndex: "variants",
       key: "colors",
-      render: (colors) => colors.join(", "),
+      render: (variants) => variants.map(v => v.color).join(", "), // Collect colors from variants
     },
     {
       title: "Gender",
@@ -134,6 +136,9 @@ const Product = () => {
           <Button type="link" style={{ color: "#FFA500" }} icon={<EditOutlined />} onClick={() => handleEdit(record)}>
             Edit
           </Button>
+          <Button type="link" style={{ color: "red" }} icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)}>
+            Delete
+          </Button>
         </span>
       ),
     },
@@ -160,7 +165,7 @@ const Product = () => {
         isModalVisible={isUpdateModalVisible} 
         onUpdate={handleUpdate} 
         onCancel={handleUpdateCancel} 
-        product={selectedProduct} // Pass the selected product
+        product={selectedProduct} 
       />
     </div>
   );

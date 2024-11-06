@@ -1,187 +1,270 @@
 import React, { useEffect, useState } from "react";
 import { getProductById } from "../../api/product";
-import { createOrder, getProvinces, getDistricts, getWards } from "../../api/order"; // Import the necessary API functions
-import { Radio, Input, Button, Form, Typography, Select } from "antd";
+import { getAddress } from "../../api/address";
+import { createOrder } from "../../api/order";
+import { Button, Typography, Modal, List, message, Input } from "antd";
 import { useNavigate } from "react-router-dom";
+import { searchVoucher } from "../../api/voucher";
 
 const { Title } = Typography;
-const { Option } = Select;
 
 const Checkout = () => {
-  const [product, setProduct] = useState({});
-  const [provinces, setProvinces] = useState([]);
-  const [districts, setDistricts] = useState([]); // State for districts
-  const [wards, setWards] = useState([]); // State for wards
-  const [shippingInfo, setShippingInfo] = useState({
-    address: "",
-    phone: "",
-    province: "",
-    district: "",
-    ward: "",
-  });
-  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [products, setProducts] = useState([]);
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("CASH");
+  const [voucherCode, setVoucherCode] = useState("");
+  const [voucherDetails, setVoucherDetails] = useState(null);
+  const [discountedPrice, setDiscountedPrice] = useState(null);
 
   const selectedProduct = JSON.parse(localStorage.getItem("selectedProduct"));
+  const cart = JSON.parse(localStorage.getItem("cart"));
   const userInfo = JSON.parse(localStorage.getItem("user"));
   const navigate = useNavigate();
 
-  // Fetch the product information based on the product ID stored in local storage
-  const fetchProduct = async () => {
+  const fetchAddresses = async () => {
     try {
-      const response = await getProductById(selectedProduct.productId);
-      setProduct(response);
+      const response = await getAddress(userInfo.id);
+      setAddresses(response);
+      if (response.length > 0) {
+        setSelectedAddress(response[0]);
+      }
     } catch (error) {
-      console.error("Failed to fetch product:", error);
+      console.error("Failed to fetch addresses:", error);
     }
   };
 
-  const fetchProvinces = async () => {
+  const fetchProducts = async () => {
     try {
-      const response = await getProvinces();
-      setProvinces(response);
+      if (selectedProduct) {
+        const response = await getProductById(selectedProduct.productId);
+        setProducts([response]);
+      } else if (cart && cart.length > 0) {
+        const productPromises = cart.map((item) => getProductById(item.productId));
+        const productResponses = await Promise.all(productPromises);
+        setProducts(productResponses);
+      }
+      setDiscountedPrice(products.length > 0 ? products[0].price : 0);
     } catch (error) {
-      console.error("Failed to fetch provinces:", error);
-    }
-  };
-
-  const fetchDistricts = async (provinceId) => {
-    try {
-      const response = await getDistricts(provinceId);
-      setDistricts(response);
-    } catch (error) {
-      console.error("Failed to fetch districts:", error);
-    }
-  };
-
-  const fetchWards = async (districtId) => {
-    try {
-      const response = await getWards(districtId);
-      setWards(response);
-    } catch (error) {
-      console.error("Failed to fetch wards:", error);
+      console.error("Failed to fetch products:", error);
     }
   };
 
   useEffect(() => {
-    if (selectedProduct) {
-    }
-  }, [selectedProduct]);
-  
-  useEffect(() => {
-    fetchProduct();
-    fetchProvinces();
+    fetchProducts();
+    fetchAddresses();
   }, []);
 
-  // Handle payment method change
-  const handlePaymentChange = (e) => {
-    setPaymentMethod(e.target.value);
+  const handleOpenModal = () => {
+    setIsModalVisible(true);
   };
 
-  // Handle form submission
-  const handleSubmit = async (values) => {
-    const orderData = {
-      user: { id: userInfo.id },
-      product: { id: selectedProduct.productId },
-      size: selectedProduct.size,
-      color: selectedProduct.color,
-      qty: selectedProduct.quantity,
-      price: product.price * selectedProduct.quantity,
-      payment: paymentMethod === "cash" ? "CASH" : "PAY",
-      phone: values.phone,
-      address: values.address,
-      ward: { id: shippingInfo.ward },
-    };
+  const handleAddressSelect = (address) => {
+    setSelectedAddress(address);
+    setIsModalVisible(false);
+  };
 
-    console.log("Order Data:", orderData);
+  const handleSearchVoucher = async () => {
+    if (!voucherCode) {
+      message.error("Please enter a voucher code.");
+      return;
+    }
 
     try {
-      const response = await createOrder(orderData);
-      console.log("Order created successfully:", response);
-      navigate("/"); // Redirect to home page after successful order
+      const response = await searchVoucher(voucherCode);
+      if (response) {
+        setVoucherDetails(response);
+        message.success("Voucher applied successfully!");
+
+        const discountAmount = (response.discount / 100) * products[0].price;
+        const newPrice = products[0].price - discountAmount;
+        setDiscountedPrice(newPrice);
+      } else {
+        message.error("Voucher not found or invalid.");
+        setVoucherDetails(null);
+        setDiscountedPrice(products[0].price);
+      }
     } catch (error) {
-      console.error("Failed to create order:", error);
+      console.error("Failed to search voucher:", error);
+      message.error("Failed to search voucher.");
     }
   };
 
+  const handleSubmitOrder = async () => {
+    if (!selectedAddress) {
+      message.error("Please select a shipping address.");
+      return;
+    }
+  
+    // Construct orderDetails using cart items, or fallback to selectedProduct if cart is empty
+    const orderDetails = (cart && cart.length > 0 ? cart : [selectedProduct]).map((item) => ({
+      productVariant: { id: item.variantId }, // Use variantId from item (either from cart or selectedProduct)
+      quantity: item.quantity, // Use quantity from item (either from cart or selectedProduct)
+      price: discountedPrice, // Use discounted price
+    }));
+  
+    const orderPayload = {
+      status: 1,
+      payment: paymentMethod,
+      phone: selectedAddress.phone,
+      address: { id: selectedAddress.id },
+      orderDetails: orderDetails,
+      voucher: voucherDetails ? { id: voucherDetails.id } : null,
+    };
+  
+    try {
+      await createOrder(orderPayload);
+      localStorage.removeItem("selectedProduct");
+      localStorage.removeItem("cart");
+      message.success("Order created successfully!");
+      navigate("/");
+    } catch (error) {
+      console.error("Failed to create order:", error);
+      message.error("Failed to create order.");
+    }
+  };  
+
+  const totalAmount = products.reduce((sum, product) => {
+    const productAmount = product.price * 1; // Modify for actual quantity if needed
+    return sum + productAmount;
+  }, 0);
+
+  const discountAmount = voucherDetails ? (voucherDetails.discount / 100) * totalAmount : 0;
+  const finalTotalAmount = totalAmount - discountAmount;
+
   return (
-    <div className="checkout-container">
+    <div className="checkout-container max-w-[1280px] mx-auto p-4">
       <Title level={1}>Checkout</Title>
-      <div className="product-detail">
-        <img src={product.imageUrls?.[0]} alt={product.name} />
-        <div className="product-info">
-          <Title level={2}>{product.name}</Title>
-          <p>${product.price}</p>
-          <p>
-            Size: {selectedProduct.size} - Color: {selectedProduct.color} - Qty: {selectedProduct.quantity}
-          </p>
+      <div className="flex gap-8">
+        <div className="w-full">
+          {addresses.length > 0 ? (
+            <div className="mb-4 border border-gray-300 rounded p-4">
+              <Title level={2}>Shipping Information</Title>
+              <p>
+                <strong>Address:</strong> {selectedAddress?.address}
+              </p>
+              <p>
+                <strong>Phone:</strong> {selectedAddress?.phone}
+              </p>
+              <Button type="primary" onClick={handleOpenModal}>
+                Change
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between mb-4">
+              <p>No address available.</p>
+              <Button type="primary" onClick={handleOpenModal}>
+                Add Address
+              </Button>
+            </div>
+          )}
+
+          <div className="w-full border border-gray-300 rounded p-4 mb-4">
+            <Title level={2}>Payment Information</Title>
+            <div className="flex items-center gap-4 mb-2">
+              <input
+                type="radio"
+                id="cash"
+                name="payment"
+                value="CASH"
+                checked={paymentMethod === "CASH"}
+                onChange={() => setPaymentMethod("CASH")}
+                className="mr-2"
+              />
+              <label htmlFor="cash">Cash on Delivery</label>
+            </div>
+            <div className="flex items-center gap-4 mb-2">
+              <input
+                type="radio"
+                id="paypal"
+                name="payment"
+                value="PAY"
+                checked={paymentMethod === "PAY"}
+                onChange={() => setPaymentMethod("PAY")}
+                className="mr-2"
+              />
+              <label htmlFor="paypal">Paypal</label>
+            </div>
+          </div>
+          <Button type="primary" onClick={handleSubmitOrder}>
+            Submit Order
+          </Button>
+        </div>
+
+        <div className="w-[500px]">
+          {selectedProduct ? (
+            <div className="product-detail h-max border border-gray-300 rounded p-4 mb-4 flex">
+              <img src={products[0].imageUrls?.[0]} alt={products[0].name} className="w-28 h-28 object-cover" />
+              <div className="product-info">
+                <Title level={2} className="!mb-1">
+                  {products[0].name}
+                </Title>
+                <p className="text-lg font-bold">${products[0].price}</p>
+                <p className="text-sm">
+                  <strong>Size:</strong> {selectedProduct.size} - <strong>Color:</strong> {selectedProduct.color} -{" "}
+                  <strong>QTY:</strong> {selectedProduct.quantity}
+                </p>
+              </div>
+            </div>
+          ) : (
+            cart.map((item, index) => {
+              const product = products.find((p) => p.id === item.productId); // Tìm sản phẩm từ products đã fetch
+              return (
+                product && (
+                  <div className="product-detail h-max border border-gray-300 rounded p-4 mb-4 flex" key={index}>
+                    <img src={product.imageUrls?.[0]} alt={product.name} className="w-28 h-28 object-cover" />
+                    <div className="product-info">
+                      <Title level={2} className="!mb-1">
+                        {product.name}
+                      </Title>
+                      <p className="text-lg font-bold">${product.price}</p>
+                      <p className="text-sm">
+                        <strong>Size:</strong> {item.size} - <strong>Color:</strong> {item.color} -{" "}
+                        <strong>QTY:</strong> {item.quantity}
+                      </p>
+                    </div>
+                  </div>
+                )
+              );
+            })
+          )}
+          <div className="border border-gray-300 rounded p-4 mb-4">
+            <Title level={3}>Voucher</Title>
+            <Input
+              value={voucherCode}
+              onChange={(e) => setVoucherCode(e.target.value)}
+              placeholder="Enter voucher code"
+              className="mb-2"
+            />
+            <Button type="primary" onClick={handleSearchVoucher}>
+              Apply Voucher
+            </Button>
+            {voucherDetails && (
+              <div className="voucher-details mt-2">
+                <p>Voucher Applied: {voucherDetails.code}</p>
+                <p>Discount: {voucherDetails.discount}%</p>
+              </div>
+            )}
+          </div>
+          <div className="flex justify-between mb-4">
+            <p>Total:</p>
+            <p>${finalTotalAmount}</p>
+          </div>
         </div>
       </div>
-      <Form onFinish={handleSubmit}>
-        <Title level={2}>Shipping Information</Title>
-        <Form.Item label="Name">
-          <Input name="name" value={userInfo ? userInfo.fullname : ""} disabled />
-        </Form.Item>
-        <Form.Item label="Address" name="address" required>
-          <Input
-            value={shippingInfo.address}
-            onChange={(e) => setShippingInfo({ ...shippingInfo, address: e.target.value })}
-          />
-        </Form.Item>
-        <Form.Item label="Phone" name="phone" required>
-          <Input
-            value={shippingInfo.phone}
-            onChange={(e) => setShippingInfo({ ...shippingInfo, phone: e.target.value })}
-          />
-        </Form.Item>
-        <Form.Item label="Province" name="province" required>
-          <Select
-            onChange={(value) => {
-              setShippingInfo({ ...shippingInfo, province: value });
-              fetchDistricts(value); // Fetch districts when province changes
-            }}
-          >
-            {provinces.map((province) => (
-              <Option key={province.id} value={province.id}>
-                {province.name}
-              </Option>
-            ))}
-          </Select>
-        </Form.Item>
-        <Form.Item label="District" name="district" required>
-          <Select
-            onChange={(value) => {
-              setShippingInfo({ ...shippingInfo, district: value });
-              fetchWards(value); // Fetch wards when district changes
-            }}
-          >
-            {districts.map((district) => (
-              <Option key={district.id} value={district.id}>
-                {district.name}
-              </Option>
-            ))}
-          </Select>
-        </Form.Item>
-        <Form.Item label="Ward" name="ward" required>
-          <Select onChange={(value) => setShippingInfo({ ...shippingInfo, ward: value })}>
-            {wards.map((ward) => (
-              <Option key={ward.id} value={ward.id}>
-                {ward.name}
-              </Option>
-            ))}
-          </Select>
-        </Form.Item>
-        <Form.Item label="Payment Method">
-          <Radio.Group onChange={handlePaymentChange} value={paymentMethod}>
-            <Radio value="cash">Cash</Radio>
-            <Radio value="vnPay">VNPay</Radio>
-          </Radio.Group>
-        </Form.Item>
-        <Form.Item>
-          <Button type="primary" htmlType="submit">
-            Place Order
-          </Button>
-        </Form.Item>
-      </Form>
+
+      <Modal title="Select Address" visible={isModalVisible} onCancel={() => setIsModalVisible(false)} footer={null}>
+        <List
+          itemLayout="horizontal"
+          dataSource={addresses}
+          renderItem={(address) => (
+            <List.Item onClick={() => handleAddressSelect(address)}>
+              <List.Item.Meta title={address.address} description={address.phone} />
+            </List.Item>
+          )}
+        />
+      </Modal>
     </div>
   );
 };
