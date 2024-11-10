@@ -17,6 +17,14 @@ import OrderDetail from "../pages/admin/order/detail";
 import Voucher from "../pages/admin/voucher";
 import ShippingAddress from "../pages/profile/address";
 import Cart from "../pages/cart";
+import Category from "../pages/admin/category";
+import Man from "../pages/home/man";
+import Women from "../pages/home/women";
+import Kid from "../pages/home/kid";
+import Unisex from "../pages/home/unisex";
+import Profile from "../pages/profile/profile";
+import UserOrder from "../pages/profile/order";
+import Customer from "../pages/admin/user";
 
 const routes = [
   {
@@ -35,6 +43,26 @@ const routes = [
     layout: UserLayout,
   },
   {
+    path: "/man-product",
+    component: Man,
+    layout: UserLayout,
+  },
+  {
+    path: "/women-product",
+    component: Women,
+    layout: UserLayout,
+  },
+  {
+    path: "/kids-product",
+    component: Kid,
+    layout: UserLayout,
+  },
+  {
+    path: "/unisex-product",
+    component: Unisex,
+    layout: UserLayout,
+  },
+  {
     path: "/product-detail/:id",
     component: ProductDetail,
     layout: UserLayout,
@@ -50,8 +78,23 @@ const routes = [
     layout: UserLayout,
   },
   {
+    path: "/checkout/:id",
+    component: CheckoutProduct,
+    layout: UserLayout,
+  },
+  {
+    path: "/profile",
+    component: Profile,
+    layout: UserLayout,
+  },
+  {
     path: "/shipping-address",
     component: ShippingAddress,
+    layout: UserLayout,
+  },
+  {
+    path: "/orders",
+    component: UserOrder,
     layout: UserLayout,
   },
   {
@@ -78,7 +121,17 @@ const routes = [
     path: "/admin/vouchers",
     component: Voucher,
     layout: AdminLayout,
-  }
+  },
+  {
+    path: "/admin/categories",
+    component: Category,
+    layout: AdminLayout,
+  },
+  {
+    path: "/admin/customers",
+    component: Customer,
+    layout: AdminLayout,
+  },
 ];
 
 export default routes;

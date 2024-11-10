@@ -31,3 +31,7 @@ export const updateOrder = async (id, data) => {
 export const cancelOrder = async (id) => {
   return put(`/orders/cancel/${id}`);
 };
+
+export const getOrdersByUser = async (id) => {
+  return get(`/orders/user/${id}`);
+};

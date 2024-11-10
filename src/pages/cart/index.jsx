@@ -8,81 +8,67 @@ const { Title } = Typography;
 const Cart = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [quantities, setQuantities] = useState([]); // State to track quantities based on index
-  const navigate = useNavigate(); // Initialize the navigate function
+  const [quantities, setQuantities] = useState([]);
+  const navigate = useNavigate();
 
   // Fetch product details for each product ID in the cart
-  const fetchProducts = async (productIds) => {
+  const fetchProducts = async (cartItems) => {
     const productDetails = [];
-    for (const id of productIds) {
+    for (const item of cartItems) {
       try {
-        const response = await getProductById(id);
-        productDetails.push(response); // Collect the product details
+        const response = await getProductById(item.productId);
+        productDetails.push(response);
       } catch (error) {
         console.error("Failed to fetch product:", error);
       }
     }
-    setProducts(productDetails); // Update state with fetched product details
-    setLoading(false); // Set loading to false after fetching
+    setProducts(productDetails);
+    setLoading(false);
   };
 
   useEffect(() => {
     const cartItems = JSON.parse(localStorage.getItem("cart")) || [];
-    const productIds = cartItems.map((item) => item.productId); // Extract product IDs
-    fetchProducts(productIds); // Fetch product details
-
-    // Initialize quantities based on cart items (by index)
-    const initialQuantities = cartItems.map((item) => item.quantity || 1); // Default to 1 if no quantity is specified
+    fetchProducts(cartItems);
+    const initialQuantities = cartItems.map((item) => item.quantity || 1);
     setQuantities(initialQuantities);
   }, []);
 
-  const handleQuantityChange = (index, value) => {
-    // Ensure the quantity is a valid number
-    if (value < 1) return; // Prevent setting quantity less than 1
+  const handleQuantityChange = (index, value, maxQty) => {
+    if (value > maxQty) return; // Prevent setting quantity higher than max
     setQuantities((prev) => {
       const newQuantities = [...prev];
-      newQuantities[index] = value; // Update quantity for the specific index
+      newQuantities[index] = value;
       return newQuantities;
     });
   };
 
   const handleUpdateCart = () => {
     const cartItems = JSON.parse(localStorage.getItem("cart")) || [];
-
-    // Update quantities based on user input
     const updatedCart = cartItems.map((item, index) => ({
-      productId: item.productId,
-      quantity: quantities[index] || 1, // Update with the new quantity
+      ...item,
+      quantity: quantities[index] || 1,
     }));
-
     localStorage.setItem("cart", JSON.stringify(updatedCart));
     alert("Cart updated successfully!");
   };
 
   const handleRemoveItem = (index) => {
     let cartItems = JSON.parse(localStorage.getItem("cart")) || [];
-    // Remove the item at the specified index
     cartItems.splice(index, 1);
-
-    // Update localStorage and state
     localStorage.setItem("cart", JSON.stringify(cartItems));
-    // Re-fetch the products after removal
     const remainingProductIds = cartItems.map((item) => item.productId);
     fetchProducts(remainingProductIds);
-    window.location.reload(); // Reload the page to reflect the changes
+    window.location.reload();
   };
 
   const handleCheckout = () => {
-    const cartItems = JSON.parse(localStorage.getItem("cart")) || [];
-    // Navigate to checkout page
     navigate("/checkout");
   };
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen text-xl">Loading...</div>; // Centered loading indicator
+    return <div className="flex justify-center items-center h-screen text-xl">Loading...</div>;
   }
 
-  // Define columns for the Ant Design table
   const columns = [
     {
       title: "Product",
@@ -97,26 +83,35 @@ const Cart = () => {
     {
       title: "Quantity",
       dataIndex: "quantity",
-      render: (text, product, index) => (
-        <InputNumber
-          min={1}
-          value={quantities[index] || 1} // Get quantity based on index
-          onChange={(value) => handleQuantityChange(index, value)}
-        />
-      ),
+      render: (text, product, index) => {
+        const cartItem = JSON.parse(localStorage.getItem("cart"))[index];
+        const variant = product.variants.find((v) => v.id === cartItem.variantId);
+        const maxQty = variant ? variant.qty : 1;
+
+        return (
+          <InputNumber
+            min={1}
+            max={maxQty}
+            value={quantities[index] || 1}
+            onChange={(value) => handleQuantityChange(index, value, maxQty)}
+          />
+        );
+      },
     },
     {
       title: "Price",
       dataIndex: "price",
       render: (text, product, index) => (
-        <p className="text-lg font-semibold">${(product.price * (quantities[index] || 1))}</p>
+        <p className="text-lg font-semibold">
+          ${product.price * (quantities[index] || 1)}
+        </p>
       ),
     },
     {
       title: "Action",
       dataIndex: "action",
       render: (_, __, index) => (
-        <Button color="danger" variant="solid" onClick={() => handleRemoveItem(index)}>
+        <Button danger onClick={() => handleRemoveItem(index)}>
           Remove
         </Button>
       ),
@@ -133,14 +128,14 @@ const Cart = () => {
           dataSource={products}
           columns={columns}
           rowKey="id"
-          pagination={false} // Disable pagination for simplicity
+          pagination={false}
         />
       )}
       <div className="flex justify-end">
         <Button type="primary" onClick={handleUpdateCart}>
           Update Cart
         </Button>
-        <Button color="default" variant="outlined" onClick={handleCheckout} className="ml-2">
+        <Button onClick={handleCheckout} className="ml-2">
           Checkout
         </Button>
       </div>

@@ -36,15 +36,24 @@ const Header = () => {
   return (
     <div className="bg-white shadow-md">
       <div className="max-w-6xl mx-auto flex items-center justify-between p-4">
-        <div className="flex items-center">
+        <Link to="/" className="flex items-center">
           <div className="text-2xl font-bold">X-Shop</div>
           <div className="text-gray-600">ONLINE SHOPPING</div>
-        </div>
+        </Link>
         <ul className="flex space-x-4">
           <li className="nav-item">Home</li>
-          <li className="nav-item">Men</li>
-          <li className="nav-item">Women</li>
-          <li className="nav-item">Unisex</li>
+          <li className="nav-item">
+            <Link to="/man-product">Men</Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/women-product">Women</Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/kids-product">Kids</Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/unisex-product">Unisex</Link>
+          </li>
           <li className="nav-item">About</li>
           <li className="nav-item">Contact</li>
         </ul>
@@ -63,11 +72,15 @@ const Header = () => {
               {dropdownVisible && (
                 <div className="absolute right-0 top-6 mt-2 w-48 bg-white shadow-lg rounded-md z-10">
                   <ul className="py-2">
-                    <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Profile</li>
+                    <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                      <Link to="/profile">Profile</Link>
+                    </li>
                     <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
                       <Link to="/shipping-address">Shipping Information</Link>
                     </li>
-                    <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">My Orders</li>
+                    <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                      <Link to="/orders">Orders</Link>
+                    </li>
                     <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={handleLogout}>
                       Logout
                     </li>

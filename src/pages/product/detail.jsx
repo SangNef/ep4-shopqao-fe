@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getProductById } from "../../api/product";
-import { Radio, InputNumber, Button, message } from "antd";
+import { Radio, InputNumber, Button, message, Input } from "antd";
+import { createComment, getComments } from "../../api/comment";
 import "./product.css";
 
 const ProductDetail = () => {
@@ -9,6 +10,11 @@ const ProductDetail = () => {
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
   const [quantity, setQuantity] = useState(1);
+  const [inStock, setInStock] = useState(0); // New state for in-stock quantity
+  const [comments, setComments] = useState([]);
+  const [textAreaValue, setTextAreaValue] = useState(""); // State for text area
+  const user = JSON.parse(localStorage.getItem("user")) || {};
+
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -20,14 +26,37 @@ const ProductDetail = () => {
       if (response.variants && response.variants.length > 0) {
         setSelectedSize(response.variants[0].size);
         setSelectedColor(response.variants[0].color);
+        setInStock(response.variants[0].qty); // Initialize in-stock with the first variant
       }
     } catch (error) {
       console.error("Failed to fetch product:", error);
     }
   };
 
+  const fetchComments = async () => {
+    const response = await getComments(id);
+    setComments(response);
+  };
+
+  const postComment = async (content) => {
+    console.log("Posting comment:", content);
+    const payload = {
+      product: { id: product.id }, // Pass the product ID dynamically
+      user: { id: user.id }, // Assuming the user ID is 2, you can replace this with actual user info
+      content: content, // The content of the comment
+    };
+
+    // Assuming you have an API function `createComment` that posts the comment
+    const response = await createComment(payload);
+    if (response) {
+      fetchComments(); // Fetch comments again to display the new comment
+      setTextAreaValue(""); // Clear the text area after posting
+    }
+  };
+
   useEffect(() => {
     fetchProduct();
+    fetchComments();
   }, [id]);
 
   const handleAddToCart = () => {
@@ -39,54 +68,52 @@ const ProductDetail = () => {
       if (selectedVariant) {
         const cartItem = {
           productId: product.id,
-          variantId: selectedVariant.id, // Include variant ID
-          size: selectedSize,              // Include selected size
-          color: selectedColor,            // Include selected color
-          quantity: quantity,              // Include quantity
+          variantId: selectedVariant.id,
+          size: selectedSize,
+          color: selectedColor,
+          quantity: quantity,
         };
 
-        // Get existing cart items from local storage
         let cart = JSON.parse(localStorage.getItem("cart")) || [];
-        // Check if the item is already in the cart
-        const existingCartItemIndex = cart.findIndex(
-          (item) => item.variantId === selectedVariant.id // Compare by variant ID
-        );
+        const existingCartItemIndex = cart.findIndex((item) => item.variantId === selectedVariant.id);
 
         if (existingCartItemIndex > -1) {
-          // If item already exists, update the quantity
           cart[existingCartItemIndex].quantity += quantity;
         } else {
-          // If not, add the new cart item
           cart.push(cartItem);
         }
 
-        // Update local storage with the new cart
         localStorage.setItem("cart", JSON.stringify(cart));
         message.success("Product added to cart!");
-        window.location.reload(); // Refresh the page to update the cart icon
+        window.location.reload();
       }
     }
   };
 
   const handleBuyNow = () => {
     if (product) {
-      // Find the selected variant based on the selected size and color
       const selectedVariant = product.variants.find(
         (variant) => variant.size === selectedSize && variant.color === selectedColor
       );
 
-      if (selectedVariant) {
-        const productDetails = {
-          productId: product.id,
-          variantId: selectedVariant.id, // Store the variant ID
-          size: selectedSize,              // Store the selected size
-          color: selectedColor,            // Store the selected color
-          quantity: quantity,              // Store the quantity
-        };
-        localStorage.setItem("selectedProduct", JSON.stringify(productDetails));
-        navigate("/checkout");
-      }
+      navigate(`/checkout/${product.id}/?variantId=${selectedVariant.id}&quantity=${quantity}`);
     }
+  };
+
+  const handleSizeChange = (size) => {
+    setSelectedSize(size);
+    setSelectedColor(null); // Reset color when size changes
+    updateInStock(size, null);
+  };
+
+  const handleColorChange = (color) => {
+    setSelectedColor(color);
+    updateInStock(selectedSize, color);
+  };
+
+  const updateInStock = (size, color) => {
+    const variant = product?.variants.find((variant) => variant.size === size && variant.color === color);
+    setInStock(variant ? variant.qty : 0);
   };
 
   if (!product) {
@@ -94,7 +121,10 @@ const ProductDetail = () => {
   }
 
   const uniqueSizes = [...new Set(product.variants.map((variant) => variant.size))];
-  const uniqueColors = [...new Set(product.variants.map((variant) => variant.color))];
+  const availableColors = product.variants
+    .filter((variant) => variant.size === selectedSize)
+    .map((variant) => variant.color);
+  const uniqueColors = [...new Set(availableColors)];
 
   return (
     <div className="product-container max-w-4xl mx-auto p-4">
@@ -111,7 +141,7 @@ const ProductDetail = () => {
             <ul className="list-disc list-inside">
               {uniqueSizes.map((size, index) => (
                 <li key={index}>
-                  <Radio value={size} checked={selectedSize === size} onChange={() => setSelectedSize(size)}>
+                  <Radio value={size} checked={selectedSize === size} onChange={() => handleSizeChange(size)}>
                     {size}
                   </Radio>
                 </li>
@@ -124,7 +154,7 @@ const ProductDetail = () => {
             <ul className="list-disc list-inside">
               {uniqueColors.map((color, index) => (
                 <li key={index}>
-                  <Radio value={color} checked={selectedColor === color} onChange={() => setSelectedColor(color)}>
+                  <Radio value={color} checked={selectedColor === color} onChange={() => handleColorChange(color)}>
                     {color}
                   </Radio>
                 </li>
@@ -136,10 +166,12 @@ const ProductDetail = () => {
             <strong className="block text-lg">Quantity:</strong>
             <InputNumber
               min={1}
+              max={inStock}
               value={quantity}
               onChange={setQuantity}
               style={{ marginLeft: "10px", width: "60px" }}
             />
+            <p className="text-sm text-gray-500 mt-1">In stock: {inStock}</p>
           </div>
 
           <div className="action-buttons my-4">
@@ -169,22 +201,32 @@ const ProductDetail = () => {
         <p>{product.description}</p>
       </div>
 
-      <div className="additional-info my-4">
-        <h3 className="text-lg font-semibold">Warranty Information:</h3>
-        <ul className="list-disc list-inside">
-          <li>1-year warranty on manufacturing defects.</li>
-          <li>Coverage for parts and labor.</li>
-          <li>Excludes accidental damage.</li>
-          <li>Requires proof of purchase.</li>
-        </ul>
-
-        <h3 className="text-lg font-semibold">Shipping Information:</h3>
-        <ul className="list-disc list-inside">
-          <li>Free shipping on orders over $50.</li>
-          <li>Standard delivery: 3-5 business days.</li>
-          <li>Express delivery available for an additional fee.</li>
-          <li>International shipping rates vary by location.</li>
-        </ul>
+      <div className="comments-section my-4">
+        <h3 className="text-lg font-semibold">Comments:</h3>
+        <div className="post-comment my-4">
+          <h4 className="text-lg font-semibold">Post a Comment:</h4>
+          <Input.TextArea
+            value={textAreaValue}
+            onChange={(e) => setTextAreaValue(e.target.value)}
+            rows={4}
+            placeholder="Write your comment here..."
+          />
+          <Button type="primary" onClick={() => postComment(textAreaValue)} className="mt-2">
+            Post Comment
+          </Button>
+        </div>
+        {comments.length > 0 ? (
+          comments.map((comment) => (
+            <div key={comment.id} className="comment my-2 p-4">
+              <p>
+                <strong>{comment.user.fullname}</strong> ({comment.user.email})
+              </p>
+              <p>{comment.content}</p>
+            </div>
+          ))
+        ) : (
+          <p>No comments yet.</p>
+        )}
       </div>
     </div>
   );

@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Table, Typography, Button, Modal } from "antd";
+import { Table, Typography, Button, Modal, Breadcrumb } from "antd";
 import { getVouchers } from "../../../api/voucher";
 import CreateVoucher from "./create"; // Import the CreateVoucher component
+import EditVoucher from "./edit"; // Import the EditVoucher component
 
 const { Title } = Typography;
 
 const Voucher = () => {
   const [vouchers, setVouchers] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false); // State to manage the modal visibility
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false); // State for Edit Modal
+  const [selectedVoucher, setSelectedVoucher] = useState(null); // State to store the selected voucher
 
   const fetchVouchers = async () => {
     try {
@@ -31,6 +34,16 @@ const Voucher = () => {
     setIsModalVisible(false); // Hide the modal
   };
 
+  const handleEdit = (voucher) => {
+    setSelectedVoucher(voucher); // Set the selected voucher for editing
+    setIsEditModalVisible(true); // Open the Edit Modal
+  };
+
+  const handleEditModalClose = () => {
+    setIsEditModalVisible(false); // Hide the Edit Modal
+    setSelectedVoucher(null); // Clear the selected voucher
+  };
+
   // Define the columns for the Ant Design table
   const columns = [
     {
@@ -47,6 +60,7 @@ const Voucher = () => {
       title: "Discount",
       dataIndex: "discount",
       key: "discount",
+      render: (text) => `${text}%`,
     },
     {
       title: "Quantity",
@@ -59,29 +73,22 @@ const Voucher = () => {
       key: "description",
     },
     {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      render: (text) => <span style={{ color: text ? "#28a745" : "#dc3545" }}>{text ? "Active" : "Inactive"}</span>,
-    },
-    {
       title: "Action",
       key: "action",
       render: (_, record) => (
-        <Button type="link" onClick={() => handleEdit(record.id)}>
+        <Button type="link" onClick={() => handleEdit(record)}>
           Edit
         </Button>
       ),
     },
   ];
 
-  const handleEdit = (id) => {
-    // Implement the logic to handle editing the voucher
-    console.log("Edit voucher with ID:", id);
-  };
-
   return (
-    <div style={{ margin: "24px", backgroundColor: "#f9f9f9", borderRadius: "8px", padding: "24px" }}>
+    <div className="p-5">
+      <Breadcrumb style={{ marginBottom: "20px" }}>
+        <Breadcrumb.Item>Home</Breadcrumb.Item>
+        <Breadcrumb.Item>Vouchers</Breadcrumb.Item>
+      </Breadcrumb>
       <div className="flex justify-between">
         <Title level={2}>Voucher List</Title>
         <Button type="primary" onClick={handleCreateButtonClick}>
@@ -104,6 +111,22 @@ const Voucher = () => {
         footer={null} // We'll add the footer buttons in the CreateVoucher component
       >
         <CreateVoucher onClose={handleModalClose} onVoucherCreated={fetchVouchers} />
+      </Modal>
+
+      {/* Edit Voucher Modal */}
+      <Modal
+        title="Edit Voucher"
+        visible={isEditModalVisible}
+        onCancel={handleEditModalClose}
+        footer={null} // We'll add the footer buttons in the EditVoucher component
+      >
+        {selectedVoucher && (
+          <EditVoucher
+            voucher={selectedVoucher}
+            onClose={handleEditModalClose}
+            onVoucherUpdated={fetchVouchers} // Function to re-fetch the vouchers after updating
+          />
+        )}
       </Modal>
     </div>
   );

@@ -18,7 +18,6 @@ const Checkout = () => {
   const [voucherDetails, setVoucherDetails] = useState(null);
   const [discountedPrice, setDiscountedPrice] = useState(null);
 
-  const selectedProduct = JSON.parse(localStorage.getItem("selectedProduct"));
   const cart = JSON.parse(localStorage.getItem("cart"));
   const userInfo = JSON.parse(localStorage.getItem("user"));
   const navigate = useNavigate();
@@ -37,10 +36,7 @@ const Checkout = () => {
 
   const fetchProducts = async () => {
     try {
-      if (selectedProduct) {
-        const response = await getProductById(selectedProduct.productId);
-        setProducts([response]);
-      } else if (cart && cart.length > 0) {
+      if (cart && cart.length > 0) {
         const productPromises = cart.map((item) => getProductById(item.productId));
         const productResponses = await Promise.all(productPromises);
         setProducts(productResponses);
@@ -96,14 +92,14 @@ const Checkout = () => {
       message.error("Please select a shipping address.");
       return;
     }
-  
+
     // Construct orderDetails using cart items, or fallback to selectedProduct if cart is empty
-    const orderDetails = (cart && cart.length > 0 ? cart : [selectedProduct]).map((item) => ({
+    const orderDetails = (cart && cart.length > 0 && cart).map((item) => ({
       productVariant: { id: item.variantId }, // Use variantId from item (either from cart or selectedProduct)
       quantity: item.quantity, // Use quantity from item (either from cart or selectedProduct)
       price: discountedPrice, // Use discounted price
     }));
-  
+
     const orderPayload = {
       status: 1,
       payment: paymentMethod,
@@ -112,18 +108,18 @@ const Checkout = () => {
       orderDetails: orderDetails,
       voucher: voucherDetails ? { id: voucherDetails.id } : null,
     };
-  
+
     try {
       await createOrder(orderPayload);
       localStorage.removeItem("selectedProduct");
       localStorage.removeItem("cart");
       message.success("Order created successfully!");
-      navigate("/");
+      navigate("/orders");
     } catch (error) {
       console.error("Failed to create order:", error);
       message.error("Failed to create order.");
     }
-  };  
+  };
 
   const totalAmount = products.reduce((sum, product) => {
     const productAmount = product.price * 1; // Modify for actual quantity if needed
@@ -142,7 +138,8 @@ const Checkout = () => {
             <div className="mb-4 border border-gray-300 rounded p-4">
               <Title level={2}>Shipping Information</Title>
               <p>
-                <strong>Address:</strong> {selectedAddress?.address}
+                <strong>Address:</strong> {selectedAddress?.address} - {selectedAddress?.ward?.name} -{" "}
+                {selectedAddress?.ward?.district?.name} - {selectedAddress?.ward?.district?.province?.name}
               </p>
               <p>
                 <strong>Phone:</strong> {selectedAddress?.phone}
@@ -193,42 +190,26 @@ const Checkout = () => {
         </div>
 
         <div className="w-[500px]">
-          {selectedProduct ? (
-            <div className="product-detail h-max border border-gray-300 rounded p-4 mb-4 flex">
-              <img src={products[0].imageUrls?.[0]} alt={products[0].name} className="w-28 h-28 object-cover" />
-              <div className="product-info">
-                <Title level={2} className="!mb-1">
-                  {products[0].name}
-                </Title>
-                <p className="text-lg font-bold">${products[0].price}</p>
-                <p className="text-sm">
-                  <strong>Size:</strong> {selectedProduct.size} - <strong>Color:</strong> {selectedProduct.color} -{" "}
-                  <strong>QTY:</strong> {selectedProduct.quantity}
-                </p>
-              </div>
-            </div>
-          ) : (
-            cart.map((item, index) => {
-              const product = products.find((p) => p.id === item.productId); // Tìm sản phẩm từ products đã fetch
-              return (
-                product && (
-                  <div className="product-detail h-max border border-gray-300 rounded p-4 mb-4 flex" key={index}>
-                    <img src={product.imageUrls?.[0]} alt={product.name} className="w-28 h-28 object-cover" />
-                    <div className="product-info">
-                      <Title level={2} className="!mb-1">
-                        {product.name}
-                      </Title>
-                      <p className="text-lg font-bold">${product.price}</p>
-                      <p className="text-sm">
-                        <strong>Size:</strong> {item.size} - <strong>Color:</strong> {item.color} -{" "}
-                        <strong>QTY:</strong> {item.quantity}
-                      </p>
-                    </div>
+          {cart.map((item, index) => {
+            const product = products.find((p) => p.id === item.productId); // Tìm sản phẩm từ products đã fetch
+            return (
+              product && (
+                <div className="product-detail h-max border border-gray-300 rounded p-4 mb-4 flex" key={index}>
+                  <img src={product.imageUrls?.[0]} alt={product.name} className="w-28 h-28 object-cover" />
+                  <div className="product-info">
+                    <Title level={2} className="!mb-1">
+                      {product.name}
+                    </Title>
+                    <p className="text-lg font-bold">${product.price}</p>
+                    <p className="text-sm">
+                      <strong>Size:</strong> {item.size} - <strong>Color:</strong> {item.color} - <strong>QTY:</strong>{" "}
+                      {item.quantity}
+                    </p>
                   </div>
-                )
-              );
-            })
-          )}
+                </div>
+              )
+            );
+          })}
           <div className="border border-gray-300 rounded p-4 mb-4">
             <Title level={3}>Voucher</Title>
             <Input
@@ -260,7 +241,10 @@ const Checkout = () => {
           dataSource={addresses}
           renderItem={(address) => (
             <List.Item onClick={() => handleAddressSelect(address)}>
-              <List.Item.Meta title={address.address} description={address.phone} />
+              <List.Item.Meta
+                title={`${address.address} - ${address.ward?.name} - ${address.ward?.district?.name} - ${address.ward?.district?.province?.name}`}
+                description={address.phone}
+              />
             </List.Item>
           )}
         />

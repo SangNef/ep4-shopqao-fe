@@ -7,40 +7,9 @@ const { Option } = Select;
 
 const Create = ({ isModalVisible, onCreate, onCancel }) => {
   const [form] = Form.useForm();
-  const [sizes, setSizes] = useState([]);
-  const [colors, setColors] = useState([]);
-  const [colorInput, setColorInput] = useState("");
   const [variants, setVariants] = useState([]);
   const [images, setImages] = useState([]);
   const [imageUrls, setImageUrls] = useState([]);
-
-  // Function to add color
-  const handleAddColor = () => {
-    if (colorInput) {
-      setColors([...colors, colorInput]);
-      setColorInput("");
-    }
-  };
-
-  // Handle changes in size selection
-  const handleSizeChange = (selectedSizes) => {
-    setSizes(selectedSizes);
-  };
-
-  // Update variant quantity for a specific color-size combination
-  const handleQtyChange = (size, color, qty) => {
-    setVariants((prevVariants) => {
-      const updatedVariants = [...prevVariants];
-      const index = updatedVariants.findIndex((variant) => variant.size === size && variant.color === color);
-
-      if (index !== -1) {
-        updatedVariants[index].qty = qty;
-      } else {
-        updatedVariants.push({ size, color, qty });
-      }
-      return updatedVariants;
-    });
-  };
 
   // Image upload handler
   const handleImageChange = async (e) => {
@@ -84,14 +53,10 @@ const Create = ({ isModalVisible, onCreate, onCancel }) => {
       const values = await form.validateFields();
       const productData = {
         ...values,
-        variants,
         imageUrls, // Include uploaded image URLs
       };
       onCreate(productData);
       form.resetFields();
-      setSizes([]);
-      setColors([]);
-      setVariants([]);
       setImages([]);
       setImageUrls([]);
     } catch (info) {
@@ -99,25 +64,6 @@ const Create = ({ isModalVisible, onCreate, onCancel }) => {
     }
   };
 
-  // Table columns configuration for size-variant matrix
-  const columns = [
-    {
-      title: "Color",
-      dataIndex: "color",
-      key: "color",
-    },
-    ...sizes.map((size) => ({
-      title: `Size ${size}`,
-      dataIndex: size,
-      key: size,
-      render: (_, record) => (
-        <InputNumber min={0} onChange={(value) => handleQtyChange(size, record.color, value)} placeholder="Qty" />
-      ),
-    })),
-  ];
-
-  // Table data setup
-  const data = colors.map((color) => ({ color }));
 
   return (
     <Modal
@@ -154,39 +100,11 @@ const Create = ({ isModalVisible, onCreate, onCancel }) => {
         <Form.Item name="gender" label="Gender" rules={[{ required: true, message: "Please select the gender!" }]}>
           <Select placeholder="Select gender">
             <Option value="man">Man</Option>
-            <Option value="woman">Woman</Option>
+            <Option value="women">Woman</Option>
             <Option value="kid">Kid</Option>
             <Option value="unisex">Unisex</Option>
           </Select>
         </Form.Item>
-
-        <Form.Item label="Sizes">
-          <Checkbox.Group onChange={handleSizeChange}>
-            <Checkbox value="S">S</Checkbox>
-            <Checkbox value="M">M</Checkbox>
-            <Checkbox value="L">L</Checkbox>
-            <Checkbox value="XL">XL</Checkbox>
-            <Checkbox value="XXL">XXL</Checkbox>
-          </Checkbox.Group>
-        </Form.Item>
-
-        <Form.Item label="Colors">
-          <Input value={colorInput} onChange={(e) => setColorInput(e.target.value)} placeholder="Add color" />
-          <Button onClick={handleAddColor} type="primary">
-            Add Color
-          </Button>
-          <div style={{ marginTop: 8 }}>
-            {colors.map((color, index) => (
-              <span key={index} style={{ marginRight: 8 }}>
-                {color}
-              </span>
-            ))}
-          </div>
-        </Form.Item>
-
-        {sizes.length > 0 && colors.length > 0 && (
-          <Table columns={columns} dataSource={data} rowKey="color" pagination={false} />
-        )}
 
         <Form.Item label="Product Images">
           <Input type="file" accept="image/*" multiple onChange={handleImageChange} />

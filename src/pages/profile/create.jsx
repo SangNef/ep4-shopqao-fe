@@ -75,9 +75,6 @@ const CreateAddress = ({ visible, onClose, userId, onAddressAdded }) => {
   return (
     <Modal title="Add New Address" visible={visible} onCancel={onClose} footer={null}>
       <Form form={form} onFinish={handleSubmit}>
-        <Form.Item name="address" label="Address" rules={[{ required: true, message: "Please input your address!" }]}>
-          <Input />
-        </Form.Item>
         <Form.Item name="phone" label="Phone" rules={[{ required: true, message: "Please input your phone number!" }]}>
           <Input />
         </Form.Item>
@@ -123,6 +120,9 @@ const CreateAddress = ({ visible, onClose, userId, onAddressAdded }) => {
               </Option>
             ))}
           </Select>
+        </Form.Item>
+        <Form.Item name="address" label="Address" rules={[{ required: true, message: "Please input your address!" }]}>
+          <Input />
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit">

@@ -51,11 +51,11 @@ const ProductCarousel = ({ title, heading, fetchProducts }) => {
         />
         <div className="product-list" style={{ transform: `translateX(-${scrollIndex * (100 / itemsToShow)}%)` }}>
           {products.map((product) => (
-            <Link to={`/product-detail/${product.id}`} key={product.id} className="product-item">
-              <img src={product.imageUrls?.[0]} alt={product.name} style={{}} />
+            <Link to={`/product-detail/${product.id}`} key={product.id} className="border border-gray-300 rounded-lg p-4 bg-white shadow-lg">
+              <img src={product.imageUrls?.[0]} alt={product.name} className="w-full h-auto rounded-lg mb-4" />
               <div className="product-info">
-                <h3>{product.name}</h3>
-                <p>${product.price}</p>
+                <h3 className="text-xl font-medium mb-2">{product.name}</h3>
+                <p className="font-semibold text-lg text-gray-600">${product.price}</p>
               </div>
             </Link>
           ))}

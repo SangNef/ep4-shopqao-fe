@@ -1,81 +1,75 @@
 import React, { useEffect, useState } from "react";
-import { getAddress, addAddress } from "../../api/address"; // Make sure to adjust your imports
-import { Button, List, Typography } from "antd";
-import CreateAddress from "./create"; // Import the CreateAddress component
-
-const { Title } = Typography;
+import { Table, Button } from "antd";
+import { getAddress } from "../../api/address";
+import CreateAddress from "./create";
 
 const ShippingAddress = () => {
-  const [addresses, setAddresses] = useState([]);
+  const user = JSON.parse(localStorage.getItem("user"));
+  const [address, setAddress] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const userInfo = JSON.parse(localStorage.getItem("user"));
 
-  const fetchAddresses = async () => {
+  const fetchAddress = async () => {
     try {
-      const response = await getAddress(userInfo.id);
-      setAddresses(response);
+      const response = await getAddress(user.id);
+      setAddress(response);
     } catch (error) {
-      console.error("Failed to fetch addresses:", error);
+      console.error(error);
     }
   };
 
-  useEffect(() => {
-    fetchAddresses();
-  }, []);
-
-  const handleAddNewAddress = () => {
+  const handleAddAddressClick = () => {
     setIsModalVisible(true);
   };
 
-  const handleCloseModal = () => {
+  const handleModalClose = () => {
     setIsModalVisible(false);
   };
 
   const handleAddressAdded = () => {
-    fetchAddresses(); // Refresh the addresses list after adding a new address
+    fetchAddress(); // Refresh the address list
+    handleModalClose(); // Close the modal
   };
 
+  useEffect(() => {
+    fetchAddress();
+  }, []);
+
+  // Define columns for Ant Design Table
+  const columns = [
+    {
+      title: "STT",
+      render: (text, record, index) => index + 1,
+    },
+    {
+      title: "Phone Number",
+      dataIndex: "phone",
+      key: "phone",
+    },
+    {
+      title: "Address",
+      key: "address",
+      render: (text, record) => (
+        <span>
+          {record.address}, {record.ward.name}, {record.ward.district.name}, {record.ward.district.province.name}
+        </span>
+      ),
+    },
+  ];
+
   return (
-    <div className="max-w-7xl mx-auto p-4">
-      <div className="flex justify-between items-center mb-4">
-        <Title level={2} className="text-3xl font-bold">
-          Shipping Addresses
-        </Title>
-        <Button type="primary" onClick={handleAddNewAddress}>
-          + Add new
+    <div className="max-w-7xl mx-auto my-6">
+      <div className="w-full flex justify-between mb-4">
+        <h3 className="text-4xl font-semibold">Shipping Address</h3>
+        <Button type="primary" onClick={handleAddAddressClick}>
+          Add New Address
         </Button>
       </div>
-      {addresses.length > 0 ? (
-        <List
-          itemLayout="horizontal"
-          dataSource={addresses}
-          renderItem={(address) => (
-            <List.Item className="border rounded-lg shadow-lg mb-4 !p-4">
-              <List.Item.Meta
-                title={<span className="text-2xl font-bold">{address.address}</span>}
-                description={
-                  <>
-                    <div className="text-lg">
-                      <strong>Address:</strong> {address.ward.name} - {address.ward.district.name} -{" "}
-                      {address.ward.district.province.name}
-                    </div>
-                    <div className="text-lg">
-                      <strong>Phone:</strong> {address.phone}
-                    </div>
-                  </>
-                }
-              />
-            </List.Item>
-          )}
-        />
-      ) : (
-        <p>No addresses found.</p>
-      )}
+      <Table dataSource={address} columns={columns} rowKey="id" pagination={{ pageSize: 5 }} />
       <CreateAddress
         visible={isModalVisible}
-        onClose={handleCloseModal}
-        userId={userInfo.id} // Pass the user ID to the modal
-        onAddressAdded={handleAddressAdded} // Callback to refresh addresses
+        onClose={handleModalClose}
+        userId={user.id}
+        onAddressAdded={handleAddressAdded}
       />
     </div>
   );

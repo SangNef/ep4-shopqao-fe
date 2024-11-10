@@ -9,9 +9,6 @@ const { Option } = Select;
 
 const Update = ({ isModalVisible, onUpdate, onCancel, product }) => {
   const [form] = Form.useForm();
-  const [sizes, setSizes] = useState([]);
-  const [colorInput, setColorInput] = useState('');
-  const [colors, setColors] = useState([]);
   const [images, setImages] = useState([]); // Handle multiple images
   const [imageUrls, setImageUrls] = useState([]); // Store URLs for uploaded images
 
@@ -21,13 +18,10 @@ const Update = ({ isModalVisible, onUpdate, onCancel, product }) => {
       form.setFieldsValue({
         name: product.name,
         price: product.price,
-        qty: product.qty,
         description: product.description,
         gender: product.gender,
         status: product.status,
       });
-      setSizes(product.sizes || []);
-      setColors(product.colors || []);
       setImageUrls(product.imageUrls || []);
     }
   }, [product, form]);
@@ -37,30 +31,15 @@ const Update = ({ isModalVisible, onUpdate, onCancel, product }) => {
       const values = await form.validateFields();
       const productData = {
         ...values,
-        sizes,
-        colors,
         imageUrls, // Use the array of image URLs
       };
       await updateProduct(product.id, productData); // Call the update API
       onUpdate(); // Call the onUpdate function to refresh the product list
       form.resetFields();
-      setSizes([]);
-      setColors([]);
       setImages([]);
       setImageUrls([]);
     } catch (info) {
       console.log("Validate Failed:", info);
-    }
-  };
-
-  const handleSizeChange = (selectedSizes) => {
-    setSizes(selectedSizes);
-  };
-
-  const handleAddColor = () => {
-    if (colorInput) {
-      setColors((prevColors) => [...prevColors, colorInput]);
-      setColorInput('');
     }
   };
 
@@ -125,14 +104,6 @@ const Update = ({ isModalVisible, onUpdate, onCancel, product }) => {
         </Form.Item>
 
         <Form.Item
-          name="qty"
-          label="Quantity"
-          rules={[{ required: true, message: 'Please input the quantity!' }]}
-        >
-          <InputNumber min={0} style={{ width: '100%' }} placeholder="Enter product quantity" />
-        </Form.Item>
-
-        <Form.Item
           name="description"
           label="Description"
           rules={[{ required: true, message: 'Please input the product description!' }]}
@@ -149,45 +120,13 @@ const Update = ({ isModalVisible, onUpdate, onCancel, product }) => {
           </Select>
         </Form.Item>
 
-        <Form.Item
-          name="status"
-          label="Status"
-          valuePropName="checked"
-        >
-          <Checkbox>Active</Checkbox>
-        </Form.Item>
-
-        <Form.Item label="Product Sizes">
-          <Checkbox.Group value={sizes} onChange={handleSizeChange}>
-            <Checkbox value="S">S</Checkbox>
-            <Checkbox value="M">M</Checkbox>
-            <Checkbox value="L">L</Checkbox>
-            <Checkbox value="XL">XL</Checkbox>
-            <Checkbox value="XXL">XXL</Checkbox>
-          </Checkbox.Group>
-        </Form.Item>
-
-        <Form.Item label="Product Colors">
-          <Input
-            value={colorInput}
-            onChange={(e) => setColorInput(e.target.value)}
-            placeholder="Add color"
-          />
-          <Button onClick={handleAddColor} type="primary">+</Button>
-          <div style={{ marginTop: '8px' }}>
-            {colors.map((color, index) => (
-              <div key={index}>{color}</div>
-            ))}
-          </div>
-        </Form.Item>
-
         <Form.Item label="Product Images">
           <Input type="file" accept="image/*" multiple onChange={handleImageChange} /> {/* Allow multiple uploads */}
-          <div style={{ marginTop: '10px' }}>
+          <div style={{ marginTop: '10px' }} className='flex gap-4'>
             {imageUrls.map((url, index) => (
-              <div key={index} style={{ display: 'flex', alignItems: 'center', marginTop: 10 }}>
+              <div key={index} style={{ display: 'flex', alignItems: 'center', marginTop: 10 }} className='relative'>
                 <img src={url} alt={`Product ${index}`} style={{ width: '100px', marginRight: '10px' }} />
-                <CloseCircleOutlined onClick={() => removeImage(index)} style={{ cursor: 'pointer', color: 'red' }} />
+                <CloseCircleOutlined onClick={() => removeImage(index)} style={{ cursor: 'pointer', color: 'red' }} className='absolute right-3 top-3' />
               </div>
             ))}
           </div>
