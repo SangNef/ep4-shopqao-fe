@@ -25,6 +25,8 @@ import Unisex from "../pages/home/unisex";
 import Profile from "../pages/profile/profile";
 import UserOrder from "../pages/profile/order";
 import Customer from "../pages/admin/user";
+import Contact from "../pages/contact";
+import About from "../pages/about";
 
 const routes = [
   {
@@ -90,6 +92,16 @@ const routes = [
   {
     path: "/shipping-address",
     component: ShippingAddress,
+    layout: UserLayout,
+  },
+  {
+    path: "/contact",
+    component: Contact,
+    layout: UserLayout,
+  },
+  {
+    path: "/about",
+    component: About,
     layout: UserLayout,
   },
   {

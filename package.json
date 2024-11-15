@@ -7,6 +7,7 @@
     "@cloudinary/react": "^1.13.0",
     "@cloudinary/url-gen": "^1.21.0",
     "@craco/craco": "^7.1.0",
+    "@paypal/react-paypal-js": "^8.7.0",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",

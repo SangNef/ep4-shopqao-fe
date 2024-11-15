@@ -19,3 +19,7 @@ export const updatePassword = async (id, data) => {
 export const getUsers = async () => {
   return get("/auth/users");
 };
+
+export const subscribing = async (data) => {
+  return post("/auth/subscribe", data);
+};

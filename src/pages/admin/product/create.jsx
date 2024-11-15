@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Modal, Form, Input, InputNumber, Checkbox, Button, Select, Table } from "antd";
+import { Modal, Form, Input, InputNumber, Select, Button } from "antd";
 import { CloseCircleOutlined } from "@ant-design/icons";
 import axios from "axios";
 
@@ -7,7 +7,6 @@ const { Option } = Select;
 
 const Create = ({ isModalVisible, onCreate, onCancel }) => {
   const [form] = Form.useForm();
-  const [variants, setVariants] = useState([]);
   const [images, setImages] = useState([]);
   const [imageUrls, setImageUrls] = useState([]);
 
@@ -53,7 +52,7 @@ const Create = ({ isModalVisible, onCreate, onCancel }) => {
       const values = await form.validateFields();
       const productData = {
         ...values,
-        imageUrls, // Include uploaded image URLs
+        imageUrls,
       };
       onCreate(productData);
       form.resetFields();
@@ -63,7 +62,6 @@ const Create = ({ isModalVisible, onCreate, onCancel }) => {
       console.log("Validate Failed:", info);
     }
   };
-
 
   return (
     <Modal
@@ -100,9 +98,20 @@ const Create = ({ isModalVisible, onCreate, onCancel }) => {
         <Form.Item name="gender" label="Gender" rules={[{ required: true, message: "Please select the gender!" }]}>
           <Select placeholder="Select gender">
             <Option value="man">Man</Option>
-            <Option value="women">Woman</Option>
+            <Option value="woman">Woman</Option>
             <Option value="kid">Kid</Option>
             <Option value="unisex">Unisex</Option>
+          </Select>
+        </Form.Item>
+
+        {/* Category Select */}
+        <Form.Item name="category" label="Category" rules={[{ required: true, message: "Please select a category!" }]}>
+          <Select placeholder="Select category">
+            <Option value="tshirt">T-Shirts</Option>
+            <Option value="jeans">Jeans</Option>
+            <Option value="jackets">Jackets</Option>
+            <Option value="shoes">Shoes</Option>
+            <Option value="accessories">Accessories</Option>
           </Select>
         </Form.Item>
 

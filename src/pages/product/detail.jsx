@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getProductById } from "../../api/product";
-import { Radio, InputNumber, Button, message, Input } from "antd";
+import { Radio, InputNumber, Button, message, Input, Rate } from "antd";
 import { createComment, getComments } from "../../api/comment";
 import "./product.css";
 
@@ -13,6 +13,9 @@ const ProductDetail = () => {
   const [inStock, setInStock] = useState(0); // New state for in-stock quantity
   const [comments, setComments] = useState([]);
   const [textAreaValue, setTextAreaValue] = useState(""); // State for text area
+  const [selectedImage, setSelectedImage] = useState(""); // New state for selected image
+  const [hasCommented, setHasCommented] = useState(false); // State to check if user has commented
+  const [rating, setRating] = useState(0); // New state for rating
   const user = JSON.parse(localStorage.getItem("user")) || {};
 
   const { id } = useParams();
@@ -28,6 +31,9 @@ const ProductDetail = () => {
         setSelectedColor(response.variants[0].color);
         setInStock(response.variants[0].qty); // Initialize in-stock with the first variant
       }
+
+      // Set the first image as the default selected image
+      setSelectedImage(response.imageUrls[0]);
     } catch (error) {
       console.error("Failed to fetch product:", error);
     }
@@ -36,6 +42,10 @@ const ProductDetail = () => {
   const fetchComments = async () => {
     const response = await getComments(id);
     setComments(response);
+
+    // Check if the user has already commented
+    const userComment = response.find(comment => comment.user.id === user.id);
+    setHasCommented(!!userComment); // Set hasCommented to true if the user has commented
   };
 
   const postComment = async (content) => {
@@ -44,6 +54,7 @@ const ProductDetail = () => {
       product: { id: product.id }, // Pass the product ID dynamically
       user: { id: user.id }, // Assuming the user ID is 2, you can replace this with actual user info
       content: content, // The content of the comment
+      rating: rating, // Include the rating when posting the comment
     };
 
     // Assuming you have an API function `createComment` that posts the comment
@@ -51,6 +62,7 @@ const ProductDetail = () => {
     if (response) {
       fetchComments(); // Fetch comments again to display the new comment
       setTextAreaValue(""); // Clear the text area after posting
+      setRating(0); // Reset rating after posting
     }
   };
 
@@ -116,6 +128,10 @@ const ProductDetail = () => {
     setInStock(variant ? variant.qty : 0);
   };
 
+  const handleImageClick = (imageUrl) => {
+    setSelectedImage(imageUrl); // Update the selected image when a thumbnail is clicked
+  };
+
   if (!product) {
     return <div>Loading...</div>;
   }
@@ -130,7 +146,7 @@ const ProductDetail = () => {
     <div className="product-container max-w-4xl mx-auto p-4">
       <div className="main-content flex flex-col lg:flex-row">
         <div className="image w-full lg:w-1/2">
-          <img src={product.imageUrls?.[0]} alt={product.name} className="w-full h-auto rounded-lg" />
+          <img src={selectedImage} alt={product.name} className="w-full h-auto rounded-lg" />
         </div>
         <div className="product-info w-full lg:w-1/2 p-4">
           <h2 className="text-2xl font-bold">{product.name}</h2>
@@ -191,7 +207,8 @@ const ProductDetail = () => {
             key={index}
             src={url}
             alt={`Additional image ${index + 1}`}
-            className="w-32 h-32 object-cover rounded-lg border border-gray-200"
+            className="w-32 h-32 object-cover rounded-lg border border-gray-200 cursor-pointer"
+            onClick={() => handleImageClick(url)} // Add click event to update main image
           />
         ))}
       </div>
@@ -203,30 +220,45 @@ const ProductDetail = () => {
 
       <div className="comments-section my-4">
         <h3 className="text-lg font-semibold">Comments:</h3>
-        <div className="post-comment my-4">
-          <h4 className="text-lg font-semibold">Post a Comment:</h4>
-          <Input.TextArea
-            value={textAreaValue}
-            onChange={(e) => setTextAreaValue(e.target.value)}
-            rows={4}
-            placeholder="Write your comment here..."
-          />
-          <Button type="primary" onClick={() => postComment(textAreaValue)} className="mt-2">
-            Post Comment
-          </Button>
-        </div>
-        {comments.length > 0 ? (
-          comments.map((comment) => (
-            <div key={comment.id} className="comment my-2 p-4">
-              <p>
-                <strong>{comment.user.fullname}</strong> ({comment.user.email})
-              </p>
-              <p>{comment.content}</p>
-            </div>
-          ))
-        ) : (
-          <p>No comments yet.</p>
+        {!hasCommented && (
+          <div className="comment-form my-4">
+            <Rate value={rating} onChange={setRating} className="my-2" />
+            <Input.TextArea
+              value={textAreaValue}
+              onChange={(e) => setTextAreaValue(e.target.value)}
+              rows={4}
+              placeholder="Leave a comment"
+            />
+            <Button
+              type="primary"
+              className="mt-2"
+              onClick={() => {
+                if (textAreaValue.trim()) {
+                  postComment(textAreaValue);
+                } else {
+                  message.error("Please enter a comment.");
+                }
+              }}
+            >
+              Submit Comment
+            </Button>
+          </div>
         )}
+
+        <div className="comment-list my-4">
+          {comments.length > 0 ? (
+            comments.map((comment) => (
+              <div key={comment.id} className="comment py-2 border-b">
+                <p>
+                  <strong>{comment.user.username}</strong>: {comment.content}
+                  <span className="ml-2 text-yellow-500">Rating: {comment.rating} stars</span>
+                </p>
+              </div>
+            ))
+          ) : (
+            <p>No comments yet.</p>
+          )}
+        </div>
       </div>
     </div>
   );

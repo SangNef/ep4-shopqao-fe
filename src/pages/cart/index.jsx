@@ -102,9 +102,7 @@ const Cart = () => {
       title: "Price",
       dataIndex: "price",
       render: (text, product, index) => (
-        <p className="text-lg font-semibold">
-          ${product.price * (quantities[index] || 1)}
-        </p>
+        <p className="text-lg font-semibold">${product.price * (quantities[index] || 1)}</p>
       ),
     },
     {
@@ -124,21 +122,18 @@ const Cart = () => {
       {products.length === 0 ? (
         <p>Your cart is empty.</p>
       ) : (
-        <Table
-          dataSource={products}
-          columns={columns}
-          rowKey="id"
-          pagination={false}
-        />
+        <>
+          <Table dataSource={products} columns={columns} rowKey="id" pagination={false} />
+          <div className="flex justify-end">
+            <Button type="primary" onClick={handleUpdateCart}>
+              Update Cart
+            </Button>
+            <Button onClick={handleCheckout} className="ml-2">
+              Checkout
+            </Button>
+          </div>
+        </>
       )}
-      <div className="flex justify-end">
-        <Button type="primary" onClick={handleUpdateCart}>
-          Update Cart
-        </Button>
-        <Button onClick={handleCheckout} className="ml-2">
-          Checkout
-        </Button>
-      </div>
     </div>
   );
 };

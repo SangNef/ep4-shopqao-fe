@@ -4,21 +4,21 @@ import { getOrders } from "../../../api/order";
 import { useNavigate } from "react-router-dom";
 
 const statusText = {
-  0: "Pending",
-  1: "Confirmed",
-  2: "Shipping",
-  3: "Delivered",
-  4: "Completed",
-  5: "Canceled",
+  1: "Pending",
+  2: "Confirmed",
+  3: "Shipping",
+  4: "Delivered",
+  5: "Completed",
+  6: "Canceled",
 };
 
 const statusColors = {
-  0: "#ffc107",
-  1: "#17a2b8",
-  2: "#007bff",
-  3: "#28a745",
-  4: "#fd7e14",
-  5: "#dc3545",
+  1: "#ffc107",
+  2: "#17a2b8",
+  3: "#007bff",
+  4: "#28a745",
+  5: "#fd7e14",
+  6: "#dc3545",
 };
 
 const { Title } = Typography;

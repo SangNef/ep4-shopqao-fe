@@ -10,14 +10,14 @@ const api = axios.create({
 });
 
 
-export const get = async (url) => {
+export const get = async (url, data) => {
     try {
-        const response = await api.get(url);
+        const response = await api.get(url, { params: data });
         return response.data;
     } catch (error) {
         console.error('Error:', error);
     }
-}
+};
 
 export const post = async (url, data, config= {}) => {
     try {

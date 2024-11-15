@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Breadcrumb, Typography } from "antd";
+import { Table, Button, Breadcrumb, Typography, Modal, Input, Select } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
-import { getProducts, createProduct, updateProduct } from "../../../api/product";
+import { getProducts, createProduct, updateProduct, deleteProduct, deleteProductVariant } from "../../../api/product";
 import Create from "./create";
 import Update from "./update";
 import CreateCategory from "./category"; // Assuming you have a CreateCategory modal
 import EditVariant from "./editVariant";
 
 const { Title } = Typography;
+const { Option } = Select;
 
 const Product = () => {
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
@@ -19,15 +20,30 @@ const Product = () => {
   const [selectedVariant, setSelectedVariant] = useState(null); // Store selected variant for edit
   const [isVariantEditModalVisible, setIsVariantEditModalVisible] = useState(false);
 
-  const fetchProduct = async () => {
-    const response = await getProducts();
+  const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
+  const [productToDelete, setProductToDelete] = useState(null);
+
+  const [isVariantConfirmModalVisible, setIsVariantConfirmModalVisible] = useState(false);
+  const [variantToDelete, setVariantToDelete] = useState(null);
+  const [searchParams, setSearchParams] = useState({ name: "", gender: "", category: "" });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const fetchProduct = async (page = 1) => {
+    const response = await getProducts({ ...searchParams, page: page-1, size: 10 });
     console.log(response);
-    setProducts(response);
+    setProducts(response.content); // Set the products
+    setTotalPages(response.totalPages); // Set the total pages
   };
 
   useEffect(() => {
-    fetchProduct();
-  }, []);
+    fetchProduct(currentPage);
+  }, [searchParams, currentPage]);
+
+  const handleSearchChange = (key, value) => {
+    setSearchParams((prev) => ({ ...prev, [key]: value })); // Cập nhật searchParams khi input thay đổi
+  };
 
   const showCreateModal = () => {
     setIsCreateModalVisible(true);
@@ -62,11 +78,6 @@ const Product = () => {
     setSelectedProduct(null);
   };
 
-  const handleDelete = (id) => {
-    console.log("Delete product with ID:", id);
-    // Implement the delete functionality here
-  };
-
   const handleCategoryCreate = () => {
     // Logic to refresh categories or handle any updates after creation
     fetchProduct(); // Example of refreshing the product list
@@ -80,6 +91,48 @@ const Product = () => {
   const handleVariantEditCancel = () => {
     setIsVariantEditModalVisible(false);
     setSelectedVariant(null);
+  };
+
+  const showConfirmDeleteModal = (product) => {
+    setProductToDelete(product);
+    setIsConfirmModalVisible(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (productToDelete) {
+      await handleDeleteProduct(productToDelete.id);
+      setIsConfirmModalVisible(false);
+      setProductToDelete(null);
+    }
+  };
+
+  const handleDeleteProduct = async (id) => {
+    const response = await deleteProduct(id);
+    console.log("Product deleted:", response);
+    await fetchProduct();
+  };
+
+  const handleDeleteProductVariantConfirm = (variant) => {
+    setVariantToDelete(variant);
+    setIsVariantConfirmModalVisible(true);
+  };
+
+  const handleConfirmDeleteVariant = async () => {
+    if (variantToDelete) {
+      await handleDeleteProductVariant(variantToDelete.id);
+      setIsVariantConfirmModalVisible(false);
+      setVariantToDelete(null);
+    }
+  };
+
+  const handleDeleteProductVariant = async (variantId) => {
+    const response = await deleteProductVariant(variantId);
+    console.log("Variant deleted:", response);
+    await fetchProduct();
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page); // Update the current page when user navigates
   };
 
   const columns = [
@@ -116,6 +169,11 @@ const Product = () => {
       key: "gender",
     },
     {
+      title: "Category",
+      dataIndex: "category",
+      key: "category",
+    },
+    {
       title: "Actions",
       key: "actions",
       render: (text, record) => (
@@ -127,7 +185,7 @@ const Product = () => {
             type="link"
             style={{ color: "red" }}
             icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record.id)}
+            onClick={() => showConfirmDeleteModal(record)}
           >
             Delete
           </Button>
@@ -147,9 +205,19 @@ const Product = () => {
         title: "Actions",
         key: "actions",
         render: (text, variantRecord) => (
-          <Button type="link" icon={<EditOutlined />} onClick={() => handleVariantEdit(variantRecord)}>
-            Edit
-          </Button>
+          <>
+            <Button type="link" icon={<EditOutlined />} onClick={() => handleVariantEdit(variantRecord)}>
+              Edit
+            </Button>
+            <Button
+              type="link"
+              icon={<DeleteOutlined />}
+              style={{ color: "red" }}
+              onClick={() => handleDeleteProductVariantConfirm(variantRecord)}
+            >
+              Delete
+            </Button>
+          </>
         ),
       },
     ];
@@ -184,11 +252,48 @@ const Product = () => {
           Create
         </Button>
       </div>
+      <div style={{ display: "flex", gap: "10px" }}>
+        <Input
+          placeholder="Search by name"
+          value={searchParams.name}
+          onChange={(e) => handleSearchChange("name", e.target.value)}
+          className="w-[200px]"
+        />
+        <Select
+          placeholder="Select gender"
+          value={searchParams.gender}
+          onChange={(value) => handleSearchChange("gender", value)}
+          allowClear
+          className="w-[200px]"
+        >
+          <Option value="man">Man</Option>
+          <Option value="women">Women</Option>
+          <Option value="kid">Kid</Option>
+          <Option value="unisex">Unisex</Option>
+        </Select>
+        <Select
+          placeholder="Select category"
+          value={searchParams.category}
+          onChange={(value) => handleSearchChange("category", value)}
+          allowClear
+          className="w-[200px]"
+        >
+          <Option value="tshirt">T-Shirts</Option>
+          <Option value="jeans">Jeans</Option>
+          <Option value="jackets">Jackets</Option>
+          <Option value="shoes">Shoes</Option>
+          <Option value="accessories">Accessories</Option>
+        </Select>
+      </div>
       <Table
         columns={columns}
         dataSource={products}
-        pagination={true}
-        loading={!products.length}
+        pagination={{
+          current: currentPage,
+          total: totalPages * 10, // total items across all pages
+          pageSize: 10,
+          onChange: handlePageChange,
+        }}
         rowKey="id"
         expandable={{ expandedRowRender }}
       />
@@ -212,6 +317,26 @@ const Product = () => {
         onCancel={handleVariantEditCancel}
         variant={selectedVariant}
       />
+      <Modal
+        title="Confirm Delete"
+        visible={isConfirmModalVisible}
+        onOk={handleConfirmDelete}
+        onCancel={() => setIsConfirmModalVisible(false)}
+        okText="Yes"
+        cancelText="No"
+      >
+        <p>Are you sure you want to delete this product?</p>
+      </Modal>
+      <Modal
+        title="Confirm Delete Variant"
+        visible={isVariantConfirmModalVisible}
+        onOk={handleConfirmDeleteVariant}
+        onCancel={() => setIsVariantConfirmModalVisible(false)}
+        okText="Yes"
+        cancelText="No"
+      >
+        <p>Are you sure you want to delete this variant?</p>
+      </Modal>
     </div>
   );
 };

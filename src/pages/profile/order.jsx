@@ -31,7 +31,7 @@ const UserOrder = () => {
       title: 'Price',
       dataIndex: 'price',
       key: 'price',
-      render: (text) => <span>{text} VND</span>, // Display price with currency
+      render: (text) => <span>${text}</span>,
     },
     {
       title: 'Status',
@@ -42,13 +42,15 @@ const UserOrder = () => {
           case 1:
             return 'Pending';
           case 2:
-            return 'Shipped';
+            return 'Confirmed';
           case 3:
-            return 'Delivered';
+            return 'Shipping';
           case 4:
-            return 'Cancelled';
-          default:
-            return 'Unknown';
+            return 'Delivered';
+          case 5:
+            return 'Completed';
+          case 6:
+            return 'Canceled';
         }
       },
     },
@@ -65,7 +67,7 @@ const UserOrder = () => {
         <ul>
           {orderDetails.map((detail, index) => (
             <li key={index}>
-              {detail.quantity} x {detail.product.name} - {detail.price} VND
+              {detail.quantity} x {detail.product.name} - ${detail.price}
             </li>
           ))}
         </ul>

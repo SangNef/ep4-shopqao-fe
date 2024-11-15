@@ -5,6 +5,8 @@ import { createOrder } from "../../api/order";
 import { Button, Typography, Modal, List, message, Input } from "antd";
 import { useNavigate } from "react-router-dom";
 import { searchVoucher } from "../../api/voucher";
+import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
+import CreateAddress from "../profile/create";
 
 const { Title } = Typography;
 
@@ -17,10 +19,16 @@ const Checkout = () => {
   const [voucherCode, setVoucherCode] = useState("");
   const [voucherDetails, setVoucherDetails] = useState(null);
   const [discountedPrice, setDiscountedPrice] = useState(null);
+  const [isCreateAddressModalVisible, setIsCreateAddressModalVisible] = useState(false);
 
   const cart = JSON.parse(localStorage.getItem("cart"));
   const userInfo = JSON.parse(localStorage.getItem("user"));
   const navigate = useNavigate();
+
+  const handleOpenCreateAddressModal = () => {
+    setIsCreateAddressModalVisible(true);
+    setIsModalVisible(false);
+  };
 
   const fetchAddresses = async () => {
     try {
@@ -61,6 +69,11 @@ const Checkout = () => {
     setIsModalVisible(false);
   };
 
+  const handleAddressAdded = () => {
+    fetchAddresses();
+    setIsCreateAddressModalVisible(false);
+  };
+
   const handleSearchVoucher = async () => {
     if (!voucherCode) {
       message.error("Please enter a voucher code.");
@@ -87,6 +100,11 @@ const Checkout = () => {
     }
   };
 
+  const handlePayPalSuccess = async (details) => {
+    console.log("Payment completed successfully:", details);
+    handleSubmitOrder(); // Call order creation after successful payment
+  };
+
   const handleSubmitOrder = async () => {
     if (!selectedAddress) {
       message.error("Please select a shipping address.");
@@ -94,11 +112,19 @@ const Checkout = () => {
     }
 
     // Construct orderDetails using cart items, or fallback to selectedProduct if cart is empty
-    const orderDetails = (cart && cart.length > 0 && cart).map((item) => ({
-      productVariant: { id: item.variantId }, // Use variantId from item (either from cart or selectedProduct)
-      quantity: item.quantity, // Use quantity from item (either from cart or selectedProduct)
-      price: discountedPrice, // Use discounted price
-    }));
+    const orderDetails = (cart && cart.length > 0 && cart).map((item) => {
+      // Find the product corresponding to the item in the cart
+      const product = products.find((product) => product.id === item.productId);
+
+      // Calculate the price based on the product price and quantity
+      const itemPrice = product ? product.price * item.quantity : 0;
+
+      return {
+        productVariant: { id: item.variantId }, // Variant ID
+        quantity: item.quantity, // Quantity
+        price: itemPrice, // Price based on the product price and quantity
+      };
+    });
 
     const orderPayload = {
       status: 1,
@@ -107,6 +133,7 @@ const Checkout = () => {
       address: { id: selectedAddress.id },
       orderDetails: orderDetails,
       voucher: voucherDetails ? { id: voucherDetails.id } : null,
+      price: finalTotalAmount,
     };
 
     try {
@@ -121,13 +148,20 @@ const Checkout = () => {
     }
   };
 
-  const totalAmount = products.reduce((sum, product) => {
-    const productAmount = product.price * 1; // Modify for actual quantity if needed
-    return sum + productAmount;
+  const totalAmount = cart.reduce((sum, item) => {
+    const product = products.find((product) => product.id === item.productId);
+    if (product) {
+      return sum + product.price * item.quantity;
+    }
+    return sum;
   }, 0);
 
   const discountAmount = voucherDetails ? (voucherDetails.discount / 100) * totalAmount : 0;
   const finalTotalAmount = totalAmount - discountAmount;
+
+  useEffect(() => {
+    console.log("paymentMethod:", paymentMethod);
+  }, [paymentMethod]);
 
   return (
     <div className="checkout-container max-w-[1280px] mx-auto p-4">
@@ -151,7 +185,7 @@ const Checkout = () => {
           ) : (
             <div className="flex items-center justify-between mb-4">
               <p>No address available.</p>
-              <Button type="primary" onClick={handleOpenModal}>
+              <Button type="primary" onClick={handleOpenCreateAddressModal}>
                 Add Address
               </Button>
             </div>
@@ -184,9 +218,41 @@ const Checkout = () => {
               <label htmlFor="paypal">Paypal</label>
             </div>
           </div>
-          <Button type="primary" onClick={handleSubmitOrder}>
-            Submit Order
-          </Button>
+          {paymentMethod === "PAY" && (
+            <PayPalScriptProvider
+            options={{
+              "client-id": "AWajv0mKuFvCo7jHhxnlfrts4Nz7Uzq5Go3m68kQR3I_hI0_oKKCGVPHsTA3Vb0mPbspB4ZklFOF1065",
+              components: 'buttons', // Ensure this is included
+            }}
+          >
+            <PayPalButtons
+              style={{ layout: "vertical" }}
+              createOrder={(data, actions) => {
+                return actions.order.create({
+                  purchase_units: [
+                    {
+                      amount: {
+                        value: finalTotalAmount,
+                      },
+                    },
+                  ],
+                });
+              }}
+              onApprove={(data, actions) => {
+                return actions.order.capture().then(handlePayPalSuccess);
+              }}
+              onError={(error) => {
+                console.error("PayPal payment error:", error);
+              }}
+            />
+          </PayPalScriptProvider>
+          )}
+
+          {paymentMethod === "CASH" && (
+            <Button type="primary" onClick={handleSubmitOrder} style={{ marginTop: "20px" }}>
+              Place Order
+            </Button>
+          )}
         </div>
 
         <div className="w-[500px]">
@@ -249,6 +315,12 @@ const Checkout = () => {
           )}
         />
       </Modal>
+      <CreateAddress
+        visible={isCreateAddressModalVisible}
+        onClose={() => setIsCreateAddressModalVisible(false)}
+        userId={userInfo.id}
+        onAddressAdded={handleAddressAdded}
+      />
     </div>
   );
 };

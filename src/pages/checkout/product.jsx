@@ -5,6 +5,7 @@ import { getAddress } from "../../api/address";
 import { Button, Input, List, message, Modal, Typography } from "antd";
 import { searchVoucher } from "../../api/voucher";
 import { createOrder } from "../../api/order";
+import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 
 const { Title } = Typography;
 
@@ -86,14 +87,25 @@ const CheckoutProduct = () => {
     }
   };
 
-  const discountAmount = voucherDetails ? (voucherDetails.discount / 100) * (product.price) : 0;
-  const finalTotalAmount = product.price - discountAmount;
+  const discountAmount = voucherDetails ? (voucherDetails.discount / 100) * (product.price * quantity) : 0;
+  const finalTotalAmount = product.price * quantity - discountAmount;
+
+  useEffect(() => {
+    console.log(voucherDetails);
+    console.log(discountAmount);
+    console.log(finalTotalAmount);
+  }, [discountAmount, finalTotalAmount]);
+
+  const handlePayPalSuccess = async (details) => {
+    console.log("Payment completed successfully:", details);
+    handleSubmitOrder(); // Call order creation after successful payment
+  };
 
   const handleSubmitOrder = async () => {
     const orderDetail = {
       productVariant: { id: parseInt(variantId) },
       quantity: parseInt(quantity),
-      price: discountedPrice,
+      price: product.price * quantity,
     };
 
     const orderPayload = {
@@ -103,7 +115,8 @@ const CheckoutProduct = () => {
       address: { id: selectedAddress.id },
       orderDetails: [orderDetail],
       voucher: voucherDetails ? { id: voucherDetails.id } : null,
-    }
+      price: finalTotalAmount,
+    };
 
     try {
       await createOrder(orderPayload);
@@ -113,7 +126,7 @@ const CheckoutProduct = () => {
       console.error("Failed to create order:", error);
       message.error("Failed to create order.");
     }
-  }
+  };
 
   return (
     <div className="checkout-container max-w-[1280px] mx-auto p-4">
@@ -170,9 +183,40 @@ const CheckoutProduct = () => {
               <label htmlFor="paypal">Paypal</label>
             </div>
           </div>
-          <Button type="primary" onClick={handleSubmitOrder}>
-            Submit Order
-          </Button>
+          {paymentMethod === "PAY" && (
+            <PayPalScriptProvider
+              options={{
+                "client-id": "AWajv0mKuFvCo7jHhxnlfrts4Nz7Uzq5Go3m68kQR3I_hI0_oKKCGVPHsTA3Vb0mPbspB4ZklFOF1065",
+              }}
+            >
+              <PayPalButtons
+                style={{ layout: "vertical" }}
+                createOrder={(data, actions) => {
+                  return actions.order.create({
+                    purchase_units: [
+                      {
+                        amount: {
+                          value: finalTotalAmount,
+                        },
+                      },
+                    ],
+                  });
+                }}
+                onApprove={(data, actions) => {
+                  return actions.order.capture().then(handlePayPalSuccess);
+                }}
+                onError={(error) => {
+                  console.error("PayPal payment error:", error);
+                }}
+              />
+            </PayPalScriptProvider>
+          )}
+
+          {paymentMethod === "CASH" && (
+            <Button type="primary" onClick={handleSubmitOrder} style={{ marginTop: "20px" }}>
+              Place Order
+            </Button>
+          )}
         </div>
 
         <div className="w-[500px]">
@@ -185,8 +229,9 @@ const CheckoutProduct = () => {
                 </Title>
                 <p className="text-lg font-bold">${product.price}</p>
                 <p className="text-sm">
-                  <strong>Size:</strong> {product.variants?.find(variant => variant.id === parseInt(variantId))?.size} -{" "}
-                  <strong>Color:</strong> {product.variants?.find(variant => variant.id === parseInt(variantId))?.color} -{" "}
+                  <strong>Size:</strong> {product.variants?.find((variant) => variant.id === parseInt(variantId))?.size}{" "}
+                  - <strong>Color:</strong>{" "}
+                  {product.variants?.find((variant) => variant.id === parseInt(variantId))?.color} -{" "}
                   <strong>QTY:</strong> {quantity}
                 </p>
               </div>

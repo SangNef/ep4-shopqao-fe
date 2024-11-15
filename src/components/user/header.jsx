@@ -15,7 +15,7 @@ const Header = () => {
 
     // Retrieve cart from local storage and update cart quantity
     const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
-    setCartQuantity(storedCart.length || 0); // Sum of all quantities
+    setCartQuantity(storedCart.reduce((acc, item) => acc + item.quantity, 0)); // Sum of all quantities
 
     // Listen for updates to the cart in local storage (optional)
     window.addEventListener("storage", updateCartQuantity);
@@ -41,7 +41,9 @@ const Header = () => {
           <div className="text-gray-600">ONLINE SHOPPING</div>
         </Link>
         <ul className="flex space-x-4">
-          <li className="nav-item">Home</li>
+          <li className="nav-item">
+            <Link to="/">Home</Link>
+          </li>
           <li className="nav-item">
             <Link to="/man-product">Men</Link>
           </li>
@@ -54,8 +56,12 @@ const Header = () => {
           <li className="nav-item">
             <Link to="/unisex-product">Unisex</Link>
           </li>
-          <li className="nav-item">About</li>
-          <li className="nav-item">Contact</li>
+          <li className="nav-item">
+            <Link to="/about">About</Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/contact">Contact</Link>
+          </li>
         </ul>
         <div className="relative flex items-center space-x-4">
           {user ? (
@@ -66,22 +72,43 @@ const Header = () => {
                   {cartQuantity}
                 </span>
               </Link>
-              <span className="cursor-pointer text-gray-700" onClick={() => setDropdownVisible(!dropdownVisible)}>
+              <span
+                className="cursor-pointer text-gray-700"
+                onClick={() => setDropdownVisible(!dropdownVisible)}
+              >
                 {user.fullname}
               </span>
               {dropdownVisible && (
-                <div className="absolute right-0 top-6 mt-2 w-48 bg-white shadow-lg rounded-md z-10">
+                <div className="absolute right-0 top-6 mt-2 w-48 bg-white shadow-lg rounded-md z-[9999]">
                   <ul className="py-2">
-                    <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                      <Link to="/profile">Profile</Link>
+                    <li onClick={() => setDropdownVisible(false)}>
+                      <Link
+                        to="/profile"
+                        className="block px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                      >
+                        Profile
+                      </Link>
                     </li>
-                    <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                      <Link to="/shipping-address">Shipping Information</Link>
+                    <li onClick={() => setDropdownVisible(false)}>
+                      <Link
+                        to="/shipping-address"
+                        className="block px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                      >
+                        Shipping Information
+                      </Link>
                     </li>
-                    <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                      <Link to="/orders">Orders</Link>
+                    <li onClick={() => setDropdownVisible(false)}>
+                      <Link
+                        to="/orders"
+                        className="block px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                      >
+                        Orders
+                      </Link>
                     </li>
-                    <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={handleLogout}>
+                    <li
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={handleLogout}
+                    >
                       Logout
                     </li>
                   </ul>
@@ -90,12 +117,12 @@ const Header = () => {
             </div>
           ) : (
             <div className="flex space-x-4">
-              <a href="/login" className="text-blue-500">
+              <Link to="/login" className="text-blue-500">
                 Login
-              </a>
-              <a href="/register" className="text-blue-500">
+              </Link>
+              <Link to="/register" className="text-blue-500">
                 Signup
-              </a>
+              </Link>
             </div>
           )}
         </div>
