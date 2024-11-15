@@ -148,8 +148,15 @@ const ProductDetail = () => {
         <div className="image w-full lg:w-1/2">
           <img src={selectedImage} alt={product.name} className="w-full h-auto rounded-lg" />
         </div>
-        <div className="product-info w-full lg:w-1/2 p-4">
+        <div className="product-info w-full p-4">
           <h2 className="text-2xl font-bold">{product.name}</h2>
+          {product.totalRatings > 0 && (
+            <div className="flex items-center gap-4 w-full mb-4">
+              <p>{product.averageRating.toFixed(1)}</p>
+              <Rate disabled value={product.averageRating} /> 
+              <p>| {product.totalRatings} Ratings</p>
+            </div>
+          )}
           <p className="text-xl text-green-600">Price: ${product.price}</p>
 
           <div className="sizes my-4">

@@ -220,32 +220,32 @@ const Checkout = () => {
           </div>
           {paymentMethod === "PAY" && (
             <PayPalScriptProvider
-            options={{
-              "client-id": "AWajv0mKuFvCo7jHhxnlfrts4Nz7Uzq5Go3m68kQR3I_hI0_oKKCGVPHsTA3Vb0mPbspB4ZklFOF1065",
-              components: 'buttons', // Ensure this is included
-            }}
-          >
-            <PayPalButtons
-              style={{ layout: "vertical" }}
-              createOrder={(data, actions) => {
-                return actions.order.create({
-                  purchase_units: [
-                    {
-                      amount: {
-                        value: finalTotalAmount,
+              options={{
+                "client-id": "AWajv0mKuFvCo7jHhxnlfrts4Nz7Uzq5Go3m68kQR3I_hI0_oKKCGVPHsTA3Vb0mPbspB4ZklFOF1065",
+                components: "buttons",
+              }}
+            >
+              <PayPalButtons
+                style={{ layout: "vertical" }}
+                createOrder={(data, actions) => {
+                  return actions.order.create({
+                    purchase_units: [
+                      {
+                        amount: {
+                          value: finalTotalAmount,
+                        },
                       },
-                    },
-                  ],
-                });
-              }}
-              onApprove={(data, actions) => {
-                return actions.order.capture().then(handlePayPalSuccess);
-              }}
-              onError={(error) => {
-                console.error("PayPal payment error:", error);
-              }}
-            />
-          </PayPalScriptProvider>
+                    ],
+                  });
+                }}
+                onApprove={(data, actions) => {
+                  return actions.order.capture().then(handlePayPalSuccess);
+                }}
+                onError={(error) => {
+                  console.error("PayPal payment error:", error);
+                }}
+              />
+            </PayPalScriptProvider>
           )}
 
           {paymentMethod === "CASH" && (
