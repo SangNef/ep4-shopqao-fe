@@ -6,6 +6,7 @@ import Create from "./create";
 import Update from "./update";
 import CreateCategory from "./category"; // Assuming you have a CreateCategory modal
 import EditVariant from "./editVariant";
+import { getCategories } from "../../../api/category";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -30,16 +31,32 @@ const Product = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  const [categories, setCategories] = useState([]);
+
   const fetchProduct = async (page = 1) => {
-    const response = await getProducts({ ...searchParams, page: page-1, size: 10 });
+    const response = await getProducts({ ...searchParams, page: page - 1, size: 10 });
     console.log(response);
     setProducts(response.content); // Set the products
     setTotalPages(response.totalPages); // Set the total pages
   };
 
+  const fetchCategories = async () => {
+    try {
+      const response = await getCategories();
+      setCategories(response);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
   useEffect(() => {
     fetchProduct(currentPage);
+    fetchCategories();
   }, [searchParams, currentPage]);
+
+  useEffect(() => {
+    document.title = "Products - Admin";
+  }, []);
 
   const handleSearchChange = (key, value) => {
     setSearchParams((prev) => ({ ...prev, [key]: value })); // Cập nhật searchParams khi input thay đổi
@@ -172,6 +189,7 @@ const Product = () => {
       title: "Category",
       dataIndex: "category",
       key: "category",
+      render: (category) => category?.name,
     },
     {
       title: "Actions",
@@ -278,11 +296,11 @@ const Product = () => {
           allowClear
           className="w-[200px]"
         >
-          <Option value="tshirt">T-Shirts</Option>
-          <Option value="jeans">Jeans</Option>
-          <Option value="jackets">Jackets</Option>
-          <Option value="shoes">Shoes</Option>
-          <Option value="accessories">Accessories</Option>
+          {categories.map((category) => (
+            <Option key={category.id} value={category.name}>
+              {category.name}
+            </Option>
+          ))}
         </Select>
       </div>
       <Table
@@ -298,12 +316,18 @@ const Product = () => {
         expandable={{ expandedRowRender }}
       />
 
-      <Create isModalVisible={isCreateModalVisible} onCreate={handleCreate} onCancel={handleCreateCancel} />
+      <Create
+        isModalVisible={isCreateModalVisible}
+        onCreate={handleCreate}
+        onCancel={handleCreateCancel}
+        categories={categories}
+      />
       <Update
         isModalVisible={isUpdateModalVisible}
         onUpdate={handleUpdate}
         onCancel={handleUpdateCancel}
         product={selectedProduct}
+        categories={categories}
       />
       <CreateCategory
         isModalVisible={isCategoryCreateModalVisible}

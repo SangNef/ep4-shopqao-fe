@@ -1,13 +1,17 @@
-import { get, post, put } from "./index";
+import { get, post, put, del } from "./index";
 
 export const getCategories = () => {
-  return get("/product-variants");
+  return get("/categories");
 };
 
-export const createProductVariant = (data) => {
-  return post("/product-variants", data);
+export const createCategory = (data) => {
+  return post("/categories", data);
 };
 
-export const updateProductVariant = (id, data) => {
-  return put(`/product-variants/${id}`, data);
+export const updateCategory = (id, data) => {
+  return put(`/categories/${id}`, data);
+};
+
+export const deleteCategory = (id) => {
+  return del(`/categories/${id}`);
 };

@@ -21,6 +21,8 @@ const Checkout = () => {
   const [discountedPrice, setDiscountedPrice] = useState(null);
   const [isCreateAddressModalVisible, setIsCreateAddressModalVisible] = useState(false);
 
+  const [isPaypalLoaded, setIsPaypalLoaded] = useState(false);
+
   const cart = JSON.parse(localStorage.getItem("cart"));
   const userInfo = JSON.parse(localStorage.getItem("user"));
   const navigate = useNavigate();
@@ -58,6 +60,23 @@ const Checkout = () => {
   useEffect(() => {
     fetchProducts();
     fetchAddresses();
+
+    document.title = "XShop - Checkout";
+  }, []);
+
+  useEffect(() => {
+    const checkPaypalScript = () => {
+      if (window.paypal && window.paypal.Buttons) {
+        setIsPaypalLoaded(true);
+      }
+    };
+
+    // Add event listener to check when the script is ready
+    window.addEventListener("load", checkPaypalScript);
+
+    return () => {
+      window.removeEventListener("load", checkPaypalScript);
+    };
   }, []);
 
   const handleOpenModal = () => {
@@ -218,36 +237,36 @@ const Checkout = () => {
               <label htmlFor="paypal">Paypal</label>
             </div>
           </div>
-          {paymentMethod === "PAY" && (
+          {paymentMethod === "PAY" && isPaypalLoaded && (
             <PayPalScriptProvider
               options={{
                 "client-id": "AWajv0mKuFvCo7jHhxnlfrts4Nz7Uzq5Go3m68kQR3I_hI0_oKKCGVPHsTA3Vb0mPbspB4ZklFOF1065",
                 components: "buttons",
+                currency: "USD",
               }}
             >
               <PayPalButtons
-                style={{ layout: "vertical" }}
                 createOrder={(data, actions) => {
                   return actions.order.create({
                     purchase_units: [
                       {
                         amount: {
-                          value: finalTotalAmount,
+                          value: finalTotalAmount.toFixed(2),
                         },
                       },
                     ],
                   });
                 }}
                 onApprove={(data, actions) => {
-                  return actions.order.capture().then(handlePayPalSuccess);
-                }}
-                onError={(error) => {
-                  console.error("PayPal payment error:", error);
+                  return actions.order.capture().then(async (details) => {
+                    console.log(details);
+                    message.success("Payment Successful!");
+                    handleSubmitOrder();
+                  });
                 }}
               />
             </PayPalScriptProvider>
           )}
-
           {paymentMethod === "CASH" && (
             <Button type="primary" onClick={handleSubmitOrder} style={{ marginTop: "20px" }}>
               Place Order

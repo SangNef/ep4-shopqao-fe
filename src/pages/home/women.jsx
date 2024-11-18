@@ -23,12 +23,16 @@ const Man = () => {
     fetchProducts();
   }, [category, sortDirection]);
 
+  useEffect(() => {
+    document.title = "XShop - Women products";
+  }, []);
+
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-semibold mb-4">Women's Products</h2>
       <div className="flex gap-4">
         <div className="w-80">
-          <Select
+          {/* <Select
             value={category}
             onChange={(value) => setCategory(value)}
             placeholder="Select Category"
@@ -41,7 +45,7 @@ const Man = () => {
             <Option value="jackets">Jackets</Option>
             <Option value="shoes">Shoes</Option>
             <Option value="accessories">Accessories</Option>
-          </Select>
+          </Select> */}
 
           <Select
             value={sortDirection}

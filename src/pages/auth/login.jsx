@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Checkbox, Form, Input, Typography } from 'antd';
 import { FacebookOutlined, TwitterOutlined, MailOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
@@ -29,6 +29,10 @@ const Login = () => {
             setError(error.response?.data || "Login failed. Please try again.");
         }
     };
+
+    useEffect(() => {
+        document.title = "Login - XShop";
+    }, []);
 
     return (
         <section style={styles.section}>

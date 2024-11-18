@@ -24,6 +24,8 @@ const Voucher = () => {
 
   useEffect(() => {
     fetchVouchers();
+
+    document.title = "XShop - Vouchers";
   }, []);
 
   const handleCreateButtonClick = () => {

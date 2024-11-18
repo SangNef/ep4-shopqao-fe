@@ -1,22 +1,30 @@
 import React, { useState } from "react";
 import { Modal, Form, Input, Button, message } from "antd";
-import { createCategory } from "../../../api/category";
+import { updateCategory } from "../../../api/category";
 
-const Create = ({ isVisible, onClose, onCreate }) => {
+const Edit = ({ isVisible, onClose, category, onCategoryUpdated }) => {
   const [form] = Form.useForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleCreate = async (values) => {
+  // Populate the form with the selected category's data
+  React.useEffect(() => {
+    if (category) {
+      form.setFieldsValue({
+        name: category.name,
+      });
+    }
+  }, [category, form]);
+
+  const handleUpdate = async (values) => {
     setIsSubmitting(true);
     try {
-      await createCategory(values); // API call to create the category
-      message.success("Category created successfully!");
-      onCreate(); // Refresh the category list
-      form.resetFields(); // Reset the form
-      onClose(); // Close the modal
+      await updateCategory(category.id, values); // Call the updateCategory API with ID and new values
+      message.success("Category updated successfully!");
+      onCategoryUpdated(); // Refresh category list
+      onClose(); // Close modal
     } catch (error) {
-      console.error("Failed to create category:", error);
-      message.error("Failed to create category. Please try again.");
+      console.error("Failed to update category:", error);
+      message.error("Failed to update category. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -24,12 +32,12 @@ const Create = ({ isVisible, onClose, onCreate }) => {
 
   return (
     <Modal
-      title="Create Category"
+      title="Edit Category"
       visible={isVisible}
       onCancel={onClose}
-      footer={null} // Custom footer with buttons inside the form
+      footer={null} // Custom footer handled by the form
     >
-      <Form form={form} layout="vertical" onFinish={handleCreate}>
+      <Form form={form} layout="vertical" onFinish={handleUpdate}>
         <Form.Item
           label="Category Name"
           name="name"
@@ -45,7 +53,7 @@ const Create = ({ isVisible, onClose, onCreate }) => {
             Cancel
           </Button>
           <Button type="primary" htmlType="submit" loading={isSubmitting}>
-            Create
+            Update
           </Button>
         </div>
       </Form>
@@ -53,4 +61,4 @@ const Create = ({ isVisible, onClose, onCreate }) => {
   );
 };
 
-export default Create;
+export default Edit;

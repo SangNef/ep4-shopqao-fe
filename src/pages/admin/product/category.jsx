@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Modal, Form, Input, Button, Select, message } from "antd";
-import { createProductVariant } from "../../../api/category";
+import { createProductVariant } from "../../../api/variant";
 
 const CreateCategory = ({ isModalVisible, onCreate, onCancel, productId }) => {
   const [form] = Form.useForm();

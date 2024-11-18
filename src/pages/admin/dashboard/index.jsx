@@ -15,6 +15,8 @@ const Dashboard = () => {
       }
     };
     fetchDashboardData();
+
+    document.title = "XShop - Admin Dashboard";
   }, []);
 
   return (

@@ -27,6 +27,7 @@ import UserOrder from "../pages/profile/order";
 import Customer from "../pages/admin/user";
 import Contact from "../pages/contact";
 import About from "../pages/about";
+import AllProduct from "../pages/home/product";
 
 const routes = [
   {
@@ -42,6 +43,16 @@ const routes = [
   {
     path: "/",
     component: Home,
+    layout: UserLayout,
+  },
+  {
+    path: "/all-product",
+    component: AllProduct,
+    layout: UserLayout,
+  },
+  {
+    path: "/all-product/:search",
+    component: AllProduct,
     layout: UserLayout,
   },
   {

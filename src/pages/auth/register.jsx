@@ -1,4 +1,4 @@
-import React, { useState } from "react"; // Thêm useState
+import React, { useEffect, useState } from "react"; // Thêm useState
 import { Button, Checkbox, Form, Input, Typography } from "antd";
 import { FacebookOutlined, TwitterOutlined, MailOutlined } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router-dom";
@@ -26,6 +26,10 @@ const Register = () => {
       setError(error.response?.data || "Registration failed. Please try again.");
     }
   };
+
+  useEffect(() => {
+    document.title = "Register - XShop";
+  }, []);
 
   return (
     <section style={styles.section}>

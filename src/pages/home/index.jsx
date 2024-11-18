@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./home.css";
 import { getManProducts, getWomanProducts, getKidProducts, getUnisexProducts } from "../../api/product";
 import ProductCarousel from "./carousel";
 import { subscribing } from "../../api/auth";
+import { Link } from "react-router-dom";
 
 const Home = () => {
   const [email, setEmail] = useState("");
@@ -15,33 +16,37 @@ const Home = () => {
     }
   };
 
+  useEffect(() => {
+    document.title = "XShop - Home";
+  }, []);
+
   return (
     <div className="home-container">
       <div className="banner">
-        <div className="item-1">
-          <img src="https://themewagon.github.io/hexashop/assets/images/left-banner-image.jpg" alt="" />
+        <Link to="/all-product" className="item-1 group overflow-hidden">
+          <img src="https://themewagon.github.io/hexashop/assets/images/left-banner-image.jpg" alt="" className="group-hover:scale-110 duration-150 ease-in-out" />
           <h2>We are XShop</h2>
-        </div>
-        <div className="item-2">
-          <img src="https://themewagon.github.io/hexashop/assets/images/baner-right-image-01.jpg" alt="" />
+        </Link>
+        <Link to="/women-product" className="item-2 group overflow-hidden">
+          <img src="https://themewagon.github.io/hexashop/assets/images/baner-right-image-01.jpg" alt="" className="group-hover:scale-110 duration-150 ease-in-out" />
           <h2>Women</h2>
           <p>Best Clothes For Women</p>
-        </div>
-        <div className="item-2">
-          <img src="https://themewagon.github.io/hexashop/assets/images/baner-right-image-02.jpg" alt="" />
+        </Link>
+        <Link to="/man-product" className="item-2 group overflow-hidden">
+          <img src="https://themewagon.github.io/hexashop/assets/images/baner-right-image-02.jpg" alt="" className="group-hover:scale-110 duration-150 ease-in-out" />
           <h2>Men</h2>
           <p>Best Clothes For Men</p>
-        </div>
-        <div className="item-2">
-          <img src="https://themewagon.github.io/hexashop/assets/images/baner-right-image-03.jpg" alt="" />
+        </Link>
+        <Link to="/kids-product" className="item-2 group overflow-hidden">
+          <img src="https://themewagon.github.io/hexashop/assets/images/baner-right-image-03.jpg" alt="" className="group-hover:scale-110 duration-150 ease-in-out" />
           <h2>Kids</h2>
           <p>Best Clothes For Kids</p>
-        </div>
-        <div className="item-2">
-          <img src="https://themewagon.github.io/hexashop/assets/images/baner-right-image-04.jpg" alt="" />
-          <h2>Accessories</h2>
-          <p>Best Trend Accessories</p>
-        </div>
+        </Link>
+        <Link to="/unisex-product" className="item-2 group overflow-hidden">
+          <img src="https://themewagon.github.io/hexashop/assets/images/baner-right-image-04.jpg" alt="" className="group-hover:scale-110 duration-150 ease-in-out" />
+          <h2>Unisex</h2>
+          <p>Best Trend Unisex</p>
+        </Link>
       </div>
 
       {/* Carousels */}

@@ -1,14 +1,19 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Modal, Form, Input, InputNumber, Select, Button } from "antd";
 import { CloseCircleOutlined } from "@ant-design/icons";
 import axios from "axios";
+import { getCategories } from "../../../api/variant";
 
 const { Option } = Select;
 
-const Create = ({ isModalVisible, onCreate, onCancel }) => {
+const Create = ({ isModalVisible, onCreate, onCancel, categories }) => {
   const [form] = Form.useForm();
   const [images, setImages] = useState([]);
   const [imageUrls, setImageUrls] = useState([]);
+
+  useEffect(() => {
+    console.log("Categories:", categories);
+  }, [categories]);
 
   // Image upload handler
   const handleImageChange = async (e) => {
@@ -53,6 +58,7 @@ const Create = ({ isModalVisible, onCreate, onCancel }) => {
       const productData = {
         ...values,
         imageUrls,
+        category: { id: values.category },
       };
       onCreate(productData);
       form.resetFields();
@@ -107,11 +113,11 @@ const Create = ({ isModalVisible, onCreate, onCancel }) => {
         {/* Category Select */}
         <Form.Item name="category" label="Category" rules={[{ required: true, message: "Please select a category!" }]}>
           <Select placeholder="Select category">
-            <Option value="tshirt">T-Shirts</Option>
-            <Option value="jeans">Jeans</Option>
-            <Option value="jackets">Jackets</Option>
-            <Option value="shoes">Shoes</Option>
-            <Option value="accessories">Accessories</Option>
+            {categories?.map((category) => (
+              <Option key={category.id} value={category.id}>
+                {category.name}
+              </Option>
+            ))}
           </Select>
         </Form.Item>
 

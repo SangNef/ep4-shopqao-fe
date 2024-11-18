@@ -18,6 +18,8 @@ const Customer = () => {
 
     useEffect(() => {
         fetchCustomers();
+
+        document.title = "XShop - Customers";
     }, []);
 
     // Define columns for the table

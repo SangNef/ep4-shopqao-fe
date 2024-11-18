@@ -1,7 +1,7 @@
 import React from 'react';
 import { Layout, Menu } from 'antd';
 import { Link } from 'react-router-dom'; // Import Link
-import { DashboardOutlined, ShoppingOutlined, OrderedListOutlined, TagsOutlined, UserOutlined } from '@ant-design/icons';
+import { DashboardOutlined, ShoppingOutlined, OrderedListOutlined, TagsOutlined, UserOutlined, AppstoreAddOutlined } from '@ant-design/icons';
 
 const { Sider } = Layout;
 
@@ -17,6 +17,12 @@ const menuItems = [
     label: 'Products',
     link: '/admin/products',
     icon: <ShoppingOutlined />,
+  },
+  {
+    key: 'categories',
+    label: 'Categories',
+    link: '/admin/categories',
+    icon: <AppstoreAddOutlined />,
   },
   {
     key: 'orders',

@@ -1,38 +1,38 @@
 import React, { useEffect, useState } from "react";
-import { getKidProducts, getUnisexProducts } from "../../api/product";
-import { Link } from "react-router-dom";
+import { getProducts } from "../../api/product";
+import { Link, useSearchParams } from "react-router-dom";
 import { Badge, Select } from "antd";
 
 const { Option } = Select;
 
-const Unisex = () => {
+const AllProduct = () => {
   const [products, setProducts] = useState([]);
   const [category, setCategory] = useState("");
+  const [gender, setGender] = useState("");
   const [sortDirection, setSortDirection] = useState("asc");
 
+  const [searchParams] = useSearchParams();
+  const searchParam = searchParams.get("search");
+
   const fetchProducts = async () => {
-    try {
-      const response = await getUnisexProducts(category, sortDirection);
-      setProducts(response);
-    } catch (error) {
-      console.error("Failed to fetch products:", error);
+    const response = await getProducts({ category, gender, sortDirection, name: searchParam });
+    if (response) {
+      setProducts(response.content);
     }
   };
 
   useEffect(() => {
     fetchProducts();
-  }, [category, sortDirection]);
+  }, [category, gender, sortDirection, searchParam]);
 
   useEffect(() => {
-    document.title = "XShop - Unisex products";
-  }, []);
-
+    document.title = `XShop - ${searchParam ? `${searchParam}` : "All Products"}`;
+  }, [searchParam]);
   return (
     <div className="container mx-auto p-4">
-      <h2 className="text-2xl font-semibold mb-4">Unisex's Products</h2>
+      {searchParam && <h2 className="text-2xl font-semibold mb-4">Search results for "{searchParam}"</h2>}
       <div className="flex gap-4">
-        {/* Filters */}
-        <div className="w-80">
+        <div className="!w-80">
           {/* <Select
             value={category}
             onChange={(value) => setCategory(value)}
@@ -49,6 +49,20 @@ const Unisex = () => {
           </Select> */}
 
           <Select
+            value={gender}
+            onChange={(value) => setGender(value)}
+            placeholder="Select Gender"
+            className="w-full mt-4"
+            allowClear
+          >
+            <Option value="">All gender</Option>
+            <Option value="man">Man</Option>
+            <Option value="women">Women</Option>
+            <Option value="kid">Kids</Option>
+            <Option value="unisex">Unisex</Option>
+          </Select>
+
+          <Select
             value={sortDirection}
             onChange={(value) => setSortDirection(value)}
             placeholder="Sort by Price"
@@ -58,26 +72,14 @@ const Unisex = () => {
             <Option value="desc">Price: High to Low</Option>
           </Select>
         </div>
-
-        {/* Product List */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 flex-1">
-          {products.map((product) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {products?.map((product) => (
             <Link
               key={product.id}
               to={`/product-detail/${product.id}`}
               className="border border-gray-300 rounded-lg p-4 bg-white shadow-lg relative min-h-[350px] max-h-[400px] flex flex-col justify-between"
             >
-              {/* {product.category && (
-                <Badge
-                  count={product.category}
-                  style={{
-                    backgroundColor: "#52c41a",
-                    color: "#fff",
-                    fontSize: "12px",
-                  }}
-                  className="absolute top-2 left-2 z-10"
-                />
-              )} */}
+              
               <img
                 src={product.imageUrls[0]}
                 alt={product.name}
@@ -93,4 +95,4 @@ const Unisex = () => {
   );
 };
 
-export default Unisex;
+export default AllProduct;

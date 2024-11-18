@@ -1,13 +1,18 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 const Contact = () => {
+
+  useEffect(() => {
+    document.title = "XShop - Contact us";
+  }, []);
+
   return (
     <div>
       <>
-        <div className="bg-gray-200 py-16" id="top">
+        <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 py-16" id="top">
           <div className="container mx-auto text-center">
-            <h2 className="text-3xl font-semibold text-gray-800">Contact Us</h2>
-            <span className="text-gray-600 mt-2">Awesome, clean &amp; creative HTML5 Template</span>
+            <h2 className="text-4xl font-bold text-white">Contact Us</h2>
+            <span className="text-white mt-2 block">Awesome, clean &amp; creative HTML5 Template</span>
           </div>
         </div>
 

@@ -1,13 +1,13 @@
 // src/components/product/update.js
-import React, { useEffect, useState } from 'react';
-import { Modal, Form, Input, InputNumber, Checkbox, Button, Select } from 'antd';
-import { CloseCircleOutlined } from '@ant-design/icons'; // Import the Close icon
-import axios from 'axios';
-import { updateProduct } from '../../../api/product'; // Import the updateProduct API function
+import React, { useEffect, useState } from "react";
+import { Modal, Form, Input, InputNumber, Checkbox, Button, Select } from "antd";
+import { CloseCircleOutlined } from "@ant-design/icons"; // Import the Close icon
+import axios from "axios";
+import { updateProduct } from "../../../api/product"; // Import the updateProduct API function
 
 const { Option } = Select;
 
-const Update = ({ isModalVisible, onUpdate, onCancel, product }) => {
+const Update = ({ isModalVisible, onUpdate, onCancel, product, categories }) => {
   const [form] = Form.useForm();
   const [images, setImages] = useState([]); // Handle multiple images
   const [imageUrls, setImageUrls] = useState([]); // Store URLs for uploaded images
@@ -21,6 +21,7 @@ const Update = ({ isModalVisible, onUpdate, onCancel, product }) => {
         description: product.description,
         gender: product.gender,
         status: product.status,
+        category: product.category?.id || "",
       });
       setImageUrls(product.imageUrls || []);
     }
@@ -32,6 +33,7 @@ const Update = ({ isModalVisible, onUpdate, onCancel, product }) => {
       const productData = {
         ...values,
         imageUrls, // Use the array of image URLs
+        category: { id: values.category }, // Convert the category ID to an object
       };
       await updateProduct(product.id, productData); // Call the update API
       onUpdate(); // Call the onUpdate function to refresh the product list
@@ -59,15 +61,15 @@ const Update = ({ isModalVisible, onUpdate, onCancel, product }) => {
   const uploadImage = async (file) => {
     const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dx2o9ki2g/image/upload";
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'unsigned_uploads');
+    formData.append("file", file);
+    formData.append("upload_preset", "unsigned_uploads");
 
     try {
       const response = await axios.post(CLOUDINARY_URL, formData);
       return response.data.secure_url; // Return the secure URL
     } catch (error) {
       console.error("Error uploading image:", error);
-      return '';
+      return "";
     }
   };
 
@@ -84,34 +86,31 @@ const Update = ({ isModalVisible, onUpdate, onCancel, product }) => {
       onCancel={onCancel}
       okText="Update"
       cancelText="Cancel"
-      style={{ overflowY: 'auto', maxHeight: '80vh' }}
+      width={800}
+      style={{ overflowY: "auto", maxHeight: "80vh" }}
     >
       <Form form={form} layout="vertical">
         <Form.Item
           name="name"
           label="Product Name"
-          rules={[{ required: true, message: 'Please input the product name!' }]}
+          rules={[{ required: true, message: "Please input the product name!" }]}
         >
           <Input placeholder="Enter product name" />
         </Form.Item>
 
-        <Form.Item
-          name="price"
-          label="Price"
-          rules={[{ required: true, message: 'Please input the price!' }]}
-        >
-          <InputNumber min={0} style={{ width: '100%' }} placeholder="Enter product price" />
+        <Form.Item name="price" label="Price" rules={[{ required: true, message: "Please input the price!" }]}>
+          <InputNumber min={0} style={{ width: "100%" }} placeholder="Enter product price" />
         </Form.Item>
 
         <Form.Item
           name="description"
           label="Description"
-          rules={[{ required: true, message: 'Please input the product description!' }]}
+          rules={[{ required: true, message: "Please input the product description!" }]}
         >
           <Input.TextArea rows={4} placeholder="Enter product description" />
         </Form.Item>
 
-        <Form.Item name="gender" label="Gender" rules={[{ required: true, message: 'Please select a gender!' }]}>
+        <Form.Item name="gender" label="Gender" rules={[{ required: true, message: "Please select a gender!" }]}>
           <Select placeholder="Select gender">
             <Option value="man">Man</Option>
             <Option value="women">Women</Option>
@@ -120,13 +119,31 @@ const Update = ({ isModalVisible, onUpdate, onCancel, product }) => {
           </Select>
         </Form.Item>
 
+        {/* category */}
+        <Form.Item name="category" label="Category" rules={[{ required: true, message: "Please select a category!" }]}>
+          <Select
+            placeholder="Select category"
+            defaultValue={product?.category?.id} // Set the default selected category
+          >
+            {categories.map((category) => (
+              <Option key={category.id} value={category.id}>
+                {category.name}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+
         <Form.Item label="Product Images">
           <Input type="file" accept="image/*" multiple onChange={handleImageChange} /> {/* Allow multiple uploads */}
-          <div style={{ marginTop: '10px' }} className='flex gap-4'>
+          <div style={{ marginTop: "10px" }} className="flex gap-4">
             {imageUrls.map((url, index) => (
-              <div key={index} style={{ display: 'flex', alignItems: 'center', marginTop: 10 }} className='relative'>
-                <img src={url} alt={`Product ${index}`} style={{ width: '100px', marginRight: '10px' }} />
-                <CloseCircleOutlined onClick={() => removeImage(index)} style={{ cursor: 'pointer', color: 'red' }} className='absolute right-3 top-3' />
+              <div key={index} style={{ display: "flex", alignItems: "center", marginTop: 10 }} className="relative">
+                <img src={url} alt={`Product ${index}`} style={{ width: "100px", marginRight: "10px" }} />
+                <CloseCircleOutlined
+                  onClick={() => removeImage(index)}
+                  style={{ cursor: "pointer", color: "red" }}
+                  className="absolute right-3 top-3"
+                />
               </div>
             ))}
           </div>

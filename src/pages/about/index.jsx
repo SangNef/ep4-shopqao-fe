@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 const About = () => {
+
+  useEffect(() => {
+    document.title = "XShop - About us";
+  }, []);
   return (
     <>
       <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 py-16" id="top">

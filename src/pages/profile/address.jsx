@@ -32,6 +32,8 @@ const ShippingAddress = () => {
 
   useEffect(() => {
     fetchAddress();
+
+    document.title = "XShop - Shipping Address";
   }, []);
 
   // Define columns for Ant Design Table

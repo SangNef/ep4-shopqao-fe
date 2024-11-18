@@ -44,7 +44,7 @@ const ProductDetail = () => {
     setComments(response);
 
     // Check if the user has already commented
-    const userComment = response.find(comment => comment.user.id === user.id);
+    const userComment = response.find((comment) => comment.user.id === user.id);
     setHasCommented(!!userComment); // Set hasCommented to true if the user has commented
   };
 
@@ -60,6 +60,7 @@ const ProductDetail = () => {
     // Assuming you have an API function `createComment` that posts the comment
     const response = await createComment(payload);
     if (response) {
+      fetchProduct(); // Fetch product again to update the total ratings and average rating
       fetchComments(); // Fetch comments again to display the new comment
       setTextAreaValue(""); // Clear the text area after posting
       setRating(0); // Reset rating after posting
@@ -69,6 +70,8 @@ const ProductDetail = () => {
   useEffect(() => {
     fetchProduct();
     fetchComments();
+
+    document.title = `XShop - ${product?.name || "Product"}`;
   }, [id]);
 
   const handleAddToCart = () => {
@@ -153,11 +156,13 @@ const ProductDetail = () => {
           {product.totalRatings > 0 && (
             <div className="flex items-center gap-4 w-full mb-4">
               <p>{product.averageRating.toFixed(1)}</p>
-              <Rate disabled value={product.averageRating} /> 
+              <Rate disabled value={product.averageRating} />
               <p>| {product.totalRatings} Ratings</p>
             </div>
           )}
-          <p className="text-xl text-green-600">Price: ${product.price}</p>
+          <p className="text-xl text-green-600 mb-4">Price: ${product.price}</p>
+
+          <p className="text-gray-600">Category: {product.category?.name}</p>
 
           <div className="sizes my-4">
             <strong className="block text-lg">Sizes:</strong>
@@ -193,15 +198,26 @@ const ProductDetail = () => {
               value={quantity}
               onChange={setQuantity}
               style={{ marginLeft: "10px", width: "60px" }}
+              disabled={inStock === 0} // Disable the input if out of stock
             />
             <p className="text-sm text-gray-500 mt-1">In stock: {inStock}</p>
           </div>
 
           <div className="action-buttons my-4">
-            <Button type="primary" className="add-to-cart" onClick={handleAddToCart}>
+            <Button
+              type="primary"
+              className={`add-to-cart ${inStock === 0 ? "cursor-not-allowed" : "cursor-pointer"}`}
+              onClick={handleAddToCart}
+              disabled={inStock === 0} // Disable the "Add to Cart" button if out of stock
+            >
               Add to Cart
             </Button>
-            <Button type="danger" className="buy-now ml-2" onClick={handleBuyNow}>
+            <Button
+              type="danger"
+              className={`buy-now ml-2 ${inStock === 0 ? "cursor-not-allowed" : "cursor-pointer"}`}
+              onClick={handleBuyNow}
+              disabled={inStock === 0} // Disable the "Buy Now" button if out of stock
+            >
               Buy Now
             </Button>
           </div>

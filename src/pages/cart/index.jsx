@@ -31,6 +31,8 @@ const Cart = () => {
     fetchProducts(cartItems);
     const initialQuantities = cartItems.map((item) => item.quantity || 1);
     setQuantities(initialQuantities);
+
+    document.title = "XShop - Cart";
   }, []);
 
   const handleQuantityChange = (index, value, maxQty) => {

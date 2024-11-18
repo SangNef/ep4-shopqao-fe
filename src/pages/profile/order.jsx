@@ -13,6 +13,8 @@ const UserOrder = () => {
 
   useEffect(() => {
     fetchOrders();
+
+    document.title = 'XShop - User Orders';
   }, []);
 
   // Define the columns for the Ant Design table

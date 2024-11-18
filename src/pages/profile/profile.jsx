@@ -16,6 +16,8 @@ const Profile = () => {
       setFullname(user.fullname || "");
       setUsername(user.username || "");
     }
+
+    document.title = "XShop - Profile";
   }, []);
 
   const handleUpdateProfile = async () => {

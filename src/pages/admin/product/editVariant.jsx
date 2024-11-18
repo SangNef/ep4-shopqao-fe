@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Form, Input, Button, message } from "antd";
-import { updateProductVariant } from "../../../api/category";
+import { updateProductVariant } from "../../../api/variant";
 
 const EditVariant = ({ isModalVisible, onCancel, onUpdate, variant }) => {
   const [form] = Form.useForm();

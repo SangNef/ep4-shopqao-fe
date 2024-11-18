@@ -5,7 +5,7 @@ import { getAddress } from "../../api/address";
 import { Button, Input, List, message, Modal, Typography } from "antd";
 import { searchVoucher } from "../../api/voucher";
 import { createOrder } from "../../api/order";
-import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 const { Title } = Typography;
 
@@ -18,6 +18,8 @@ const CheckoutProduct = () => {
   const [voucherCode, setVoucherCode] = useState("");
   const [voucherDetails, setVoucherDetails] = useState(null);
   const [discountedPrice, setDiscountedPrice] = useState(null);
+
+  const [isPaypalLoaded, setIsPaypalLoaded] = useState(false);
 
   const { id } = useParams();
   const [searchParams] = useSearchParams();
@@ -50,6 +52,20 @@ const CheckoutProduct = () => {
   useEffect(() => {
     fetchProducts();
     fetchAddresses();
+    document.title = "XShop - Checkout";
+
+    const checkPaypalScript = () => {
+      if (window.paypal && window.paypal.Buttons) {
+        setIsPaypalLoaded(true);
+      }
+    };
+
+    // Add event listener to check when the script is ready
+    window.addEventListener("load", checkPaypalScript);
+
+    return () => {
+      window.removeEventListener("load", checkPaypalScript);
+    };
   }, []);
 
   const handleOpenModal = () => {
@@ -95,11 +111,6 @@ const CheckoutProduct = () => {
     console.log(discountAmount);
     console.log(finalTotalAmount);
   }, [discountAmount, finalTotalAmount]);
-
-  const handlePayPalSuccess = async (details) => {
-    console.log("Payment completed successfully:", details);
-    handleSubmitOrder(); // Call order creation after successful payment
-  };
 
   const handleSubmitOrder = async () => {
     const orderDetail = {
@@ -183,40 +194,40 @@ const CheckoutProduct = () => {
               <label htmlFor="paypal">Paypal</label>
             </div>
           </div>
-          {paymentMethod === "PAY" && (
+          {paymentMethod === "CASH" && (
+            <Button type="primary" onClick={handleSubmitOrder} style={{ marginTop: "20px" }}>
+              Place Order
+            </Button>
+          )}
+          {paymentMethod === "PAY" && isPaypalLoaded && (
             <PayPalScriptProvider
               options={{
                 "client-id": "AWajv0mKuFvCo7jHhxnlfrts4Nz7Uzq5Go3m68kQR3I_hI0_oKKCGVPHsTA3Vb0mPbspB4ZklFOF1065",
                 components: "buttons",
+                currency: "USD",
               }}
             >
               <PayPalButtons
-                style={{ layout: "vertical" }}
                 createOrder={(data, actions) => {
                   return actions.order.create({
                     purchase_units: [
                       {
                         amount: {
-                          value: finalTotalAmount,
+                          value: finalTotalAmount.toFixed(2),
                         },
                       },
                     ],
                   });
                 }}
                 onApprove={(data, actions) => {
-                  return actions.order.capture().then(handlePayPalSuccess);
-                }}
-                onError={(error) => {
-                  console.error("PayPal payment error:", error);
+                  return actions.order.capture().then(async (details) => {
+                    console.log(details);
+                    message.success("Payment Successful!");
+                    handleSubmitOrder();
+                  });
                 }}
               />
             </PayPalScriptProvider>
-          )}
-
-          {paymentMethod === "CASH" && (
-            <Button type="primary" onClick={handleSubmitOrder} style={{ marginTop: "20px" }}>
-              Place Order
-            </Button>
           )}
         </div>
 
@@ -249,22 +260,23 @@ const CheckoutProduct = () => {
             <Button type="primary" onClick={handleSearchVoucher}>
               Apply Voucher
             </Button>
-            {voucherDetails && (
-              <div className="voucher-details mt-2">
-                <p>Voucher Applied: {voucherDetails.code}</p>
-                <p>Discount: {voucherDetails.discount}%</p>
-              </div>
-            )}
           </div>
-          <div className="flex justify-between mb-4">
-            <p>Total:</p>
-            <p>${finalTotalAmount}</p>
+
+          <div className="border border-gray-300 rounded p-4">
+            <Title level={2}>Order Summary</Title>
+            <p className="text-lg font-bold">Subtotal: ${product.price * quantity}</p>
+            {voucherDetails && (
+              <p className="text-sm text-green-600">
+                Discount: {voucherDetails.discount}% off = -${discountAmount.toFixed(2)}
+              </p>
+            )}
+            <p className="text-lg font-bold">Total: ${finalTotalAmount.toFixed(2)}</p>
           </div>
         </div>
       </div>
+
       <Modal title="Select Address" visible={isModalVisible} onCancel={() => setIsModalVisible(false)} footer={null}>
         <List
-          itemLayout="horizontal"
           dataSource={addresses}
           renderItem={(address) => (
             <List.Item onClick={() => handleAddressSelect(address)}>

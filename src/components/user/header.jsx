@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { ShoppingCartOutlined } from "@ant-design/icons"; // Import cart icon
+import { Link, useNavigate } from "react-router-dom";
+import { ShoppingCartOutlined, SearchOutlined } from "@ant-design/icons"; // Import search icon
 
 const Header = () => {
   const [user, setUser] = useState(null);
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [cartQuantity, setCartQuantity] = useState(0);
+  const [searchQuery, setSearchQuery] = useState(""); // State for search query
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -13,11 +16,9 @@ const Header = () => {
       setUser(JSON.parse(storedUser));
     }
 
-    // Retrieve cart from local storage and update cart quantity
     const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
-    setCartQuantity(storedCart.reduce((acc, item) => acc + item.quantity, 0)); // Sum of all quantities
+    setCartQuantity(storedCart.reduce((acc, item) => acc + item.quantity, 0));
 
-    // Listen for updates to the cart in local storage (optional)
     window.addEventListener("storage", updateCartQuantity);
     return () => window.removeEventListener("storage", updateCartQuantity);
   }, []);
@@ -31,6 +32,13 @@ const Header = () => {
     localStorage.removeItem("user");
     setUser(null);
     setDropdownVisible(false);
+  };
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      setSearchQuery("");
+      navigate(`/all-product/?search=${encodeURIComponent(searchQuery)}`);
+    }
   };
 
   return (
@@ -64,6 +72,21 @@ const Header = () => {
           </li>
         </ul>
         <div className="relative flex items-center space-x-4">
+          <div className="flex items-center border rounded-md overflow-hidden">
+            <input
+              type="text"
+              className="px-2 py-1 outline-none"
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <button
+              className="px-3 bg-gray-100 text-gray-600"
+              onClick={handleSearch}
+            >
+              <SearchOutlined />
+            </button>
+          </div>
           {user ? (
             <div className="flex items-center gap-4">
               <Link to="/cart" className="relative">

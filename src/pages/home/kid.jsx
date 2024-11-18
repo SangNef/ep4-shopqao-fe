@@ -23,12 +23,16 @@ const Kid = () => {
     fetchProducts();
   }, [category, sortDirection]);
 
+  useEffect(() => {
+    document.title = "XShop - Kids products";
+  }, []);
+
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-semibold mb-4">Kid's Products</h2>
       <div className="flex gap-4">
         <div className="w-80">
-          <Select
+          {/* <Select
             value={category}
             onChange={(value) => setCategory(value)}
             placeholder="Select Category"
@@ -41,7 +45,7 @@ const Kid = () => {
             <Option value="jackets">Jackets</Option>
             <Option value="shoes">Shoes</Option>
             <Option value="accessories">Accessories</Option>
-          </Select>
+          </Select> */}
 
           <Select
             value={sortDirection}
@@ -61,7 +65,7 @@ const Kid = () => {
               to={`/product-detail/${product.id}`}
               className="border border-gray-300 rounded-lg p-4 bg-white shadow-lg relative min-h-[350px] max-h-[400px] flex flex-col justify-between"
             >
-              {product.category && (
+              {/* {product.category && (
                 <Badge
                   count={product.category}
                   style={{
@@ -71,7 +75,7 @@ const Kid = () => {
                   }}
                   className="absolute top-2 left-2 z-10"
                 />
-              )}
+              )} */}
               <img
                 src={product.imageUrls[0]}
                 alt={product.name}
