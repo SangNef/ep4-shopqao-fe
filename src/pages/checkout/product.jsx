@@ -142,9 +142,9 @@ const CheckoutProduct = () => {
     };
 
     try {
-      await createOrder(orderPayload);
+      const response = await createOrder(orderPayload);
       message.success("Order placed successfully!");
-      navigate("/orders?success=true");
+      navigate(`/thank-for-order/${response.id}`);
     } catch (error) {
       console.error("Failed to create order:", error);
       message.error("Failed to create order.");
