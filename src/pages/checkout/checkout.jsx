@@ -20,8 +20,7 @@ const Checkout = () => {
   const [voucherDetails, setVoucherDetails] = useState(null);
   const [discountedPrice, setDiscountedPrice] = useState(null);
   const [isCreateAddressModalVisible, setIsCreateAddressModalVisible] = useState(false);
-
-  const [isPaypalLoaded, setIsPaypalLoaded] = useState(false);
+  const [paypalLoaded, setPaypalLoaded] = useState(false);
 
   const cart = JSON.parse(localStorage.getItem("cart"));
   const userInfo = JSON.parse(localStorage.getItem("user"));
@@ -31,6 +30,16 @@ const Checkout = () => {
     setIsCreateAddressModalVisible(true);
     setIsModalVisible(false);
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      await fetchProducts();
+      await fetchAddresses();
+    };
+    fetchData();
+
+    document.title = "XShop - Checkout";
+  }, []);
 
   const fetchAddresses = async () => {
     try {
@@ -43,7 +52,6 @@ const Checkout = () => {
       console.error("Failed to fetch addresses:", error);
     }
   };
-
   const fetchProducts = async () => {
     try {
       if (cart && cart.length > 0) {
@@ -57,27 +65,31 @@ const Checkout = () => {
     }
   };
 
+  const loadPaypalScript = () => {
+    const script = document.createElement("script");
+    script.src = "https://www.paypal.com/sdk/js?client-id=AbJhiq9DxgLJ3tSTj5A643WM8ipUDGNZCZgrdXyOAr7AbfrKC9WMUfnZKiOZPR5ZLuGVtd_2iGo6zuS8"; // Use your actual client ID here
+    script.async = true;
+    script.onload = () => setPaypalLoaded(true);
+    script.onerror = () => console.error("Failed to load PayPal script");
+    document.body.appendChild(script);
+  };
   useEffect(() => {
-    fetchProducts();
-    fetchAddresses();
+    loadPaypalScript();
 
-    document.title = "XShop - Checkout";
-  }, []);
-
-  useEffect(() => {
-    const checkPaypalScript = () => {
-      if (window.paypal && window.paypal.Buttons) {
-        setIsPaypalLoaded(true);
+    // Clean up script if the component unmounts
+    return () => {
+      const script = document.querySelector(
+        'script[src="https://www.paypal.com/sdk/js?client-id=AbJhiq9DxgLJ3tSTj5A643WM8ipUDGNZCZgrdXyOAr7AbfrKC9WMUfnZKiOZPR5ZLuGVtd_2iGo6zuS8"]'
+      );
+      if (script) {
+        document.body.removeChild(script);
       }
     };
+  }, []); // Ensure that this is run only once when the component mounts
 
-    // Add event listener to check when the script is ready
-    window.addEventListener("load", checkPaypalScript);
-
-    return () => {
-      window.removeEventListener("load", checkPaypalScript);
-    };
-  }, []);
+  if (!paypalLoaded) {
+    return <div>Loading PayPal...</div>; // This is fine as conditional rendering, but don't use hooks conditionally.
+  }
 
   const handleOpenModal = () => {
     setIsModalVisible(true);
@@ -156,11 +168,11 @@ const Checkout = () => {
     };
 
     try {
-      await createOrder(orderPayload);
+      const response = await createOrder(orderPayload);
       localStorage.removeItem("selectedProduct");
       localStorage.removeItem("cart");
       message.success("Order created successfully!");
-      navigate("/orders");
+      navigate(`/thank-for-order/${response.id}`);
     } catch (error) {
       console.error("Failed to create order:", error);
       message.error("Failed to create order.");
@@ -177,10 +189,6 @@ const Checkout = () => {
 
   const discountAmount = voucherDetails ? (voucherDetails.discount / 100) * totalAmount : 0;
   const finalTotalAmount = totalAmount - discountAmount;
-
-  useEffect(() => {
-    console.log("paymentMethod:", paymentMethod);
-  }, [paymentMethod]);
 
   return (
     <div className="checkout-container max-w-[1280px] mx-auto p-4">
@@ -237,15 +245,16 @@ const Checkout = () => {
               <label htmlFor="paypal">Paypal</label>
             </div>
           </div>
-          {paymentMethod === "PAY" && isPaypalLoaded && (
+          {paymentMethod === "PAY" && (
             <PayPalScriptProvider
+              deferLoading={false}
               options={{
-                "client-id": "AWajv0mKuFvCo7jHhxnlfrts4Nz7Uzq5Go3m68kQR3I_hI0_oKKCGVPHsTA3Vb0mPbspB4ZklFOF1065",
+                "client-id": "AbJhiq9DxgLJ3tSTj5A643WM8ipUDGNZCZgrdXyOAr7AbfrKC9WMUfnZKiOZPR5ZLuGVtd_2iGo6zuS8",
                 components: "buttons",
-                currency: "USD",
               }}
             >
               <PayPalButtons
+                style={{ layout: "vertical" }}
                 createOrder={(data, actions) => {
                   return actions.order.create({
                     purchase_units: [
@@ -258,11 +267,11 @@ const Checkout = () => {
                   });
                 }}
                 onApprove={(data, actions) => {
-                  return actions.order.capture().then(async (details) => {
-                    console.log(details);
-                    message.success("Payment Successful!");
-                    handleSubmitOrder();
-                  });
+                  return actions.order.capture().then(handlePayPalSuccess);
+                }}
+                onError={(err) => {
+                  console.error(err);
+                  message.error("Payment failed.");
                 }}
               />
             </PayPalScriptProvider>

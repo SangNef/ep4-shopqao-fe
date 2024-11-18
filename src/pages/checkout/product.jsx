@@ -19,7 +19,7 @@ const CheckoutProduct = () => {
   const [voucherDetails, setVoucherDetails] = useState(null);
   const [discountedPrice, setDiscountedPrice] = useState(null);
 
-  const [isPaypalLoaded, setIsPaypalLoaded] = useState(false);
+  const [paypalLoaded, setPaypalLoaded] = useState(false);
 
   const { id } = useParams();
   const [searchParams] = useSearchParams();
@@ -53,20 +53,33 @@ const CheckoutProduct = () => {
     fetchProducts();
     fetchAddresses();
     document.title = "XShop - Checkout";
+  }, []);
 
-    const checkPaypalScript = () => {
-      if (window.paypal && window.paypal.Buttons) {
-        setIsPaypalLoaded(true);
+  const loadPaypalScript = () => {
+    const script = document.createElement("script");
+    script.src = "https://www.paypal.com/sdk/js?client-id=AbJhiq9DxgLJ3tSTj5A643WM8ipUDGNZCZgrdXyOAr7AbfrKC9WMUfnZKiOZPR5ZLuGVtd_2iGo6zuS8"; // Use your actual client ID here
+    script.async = true;
+    script.onload = () => setPaypalLoaded(true);
+    script.onerror = () => console.error("Failed to load PayPal script");
+    document.body.appendChild(script);
+  };
+  useEffect(() => {
+    loadPaypalScript();
+
+    // Clean up script if the component unmounts
+    return () => {
+      const script = document.querySelector(
+        'script[src="https://www.paypal.com/sdk/js?client-id=AbJhiq9DxgLJ3tSTj5A643WM8ipUDGNZCZgrdXyOAr7AbfrKC9WMUfnZKiOZPR5ZLuGVtd_2iGo6zuS8"]'
+      );
+      if (script) {
+        document.body.removeChild(script);
       }
     };
+  }, []); // Ensure that this is run only once when the component mounts
 
-    // Add event listener to check when the script is ready
-    window.addEventListener("load", checkPaypalScript);
-
-    return () => {
-      window.removeEventListener("load", checkPaypalScript);
-    };
-  }, []);
+  if (!paypalLoaded) {
+    return <div>Loading PayPal...</div>; // This is fine as conditional rendering, but don't use hooks conditionally.
+  }
 
   const handleOpenModal = () => {
     setIsModalVisible(true);
@@ -106,11 +119,10 @@ const CheckoutProduct = () => {
   const discountAmount = voucherDetails ? (voucherDetails.discount / 100) * (product.price * quantity) : 0;
   const finalTotalAmount = product.price * quantity - discountAmount;
 
-  useEffect(() => {
-    console.log(voucherDetails);
-    console.log(discountAmount);
-    console.log(finalTotalAmount);
-  }, [discountAmount, finalTotalAmount]);
+  const handlePayPalSuccess = async (details) => {
+    console.log("Payment completed successfully:", details);
+    handleSubmitOrder(); // Call order creation after successful payment
+  };
 
   const handleSubmitOrder = async () => {
     const orderDetail = {
@@ -132,7 +144,7 @@ const CheckoutProduct = () => {
     try {
       await createOrder(orderPayload);
       message.success("Order placed successfully!");
-      navigate("/orders");
+      navigate("/orders?success=true");
     } catch (error) {
       console.error("Failed to create order:", error);
       message.error("Failed to create order.");
@@ -199,15 +211,15 @@ const CheckoutProduct = () => {
               Place Order
             </Button>
           )}
-          {paymentMethod === "PAY" && isPaypalLoaded && (
+          {paymentMethod == "PAY" && (
             <PayPalScriptProvider
               options={{
-                "client-id": "AWajv0mKuFvCo7jHhxnlfrts4Nz7Uzq5Go3m68kQR3I_hI0_oKKCGVPHsTA3Vb0mPbspB4ZklFOF1065",
-                components: "buttons",
-                currency: "USD",
+                "client-id": "AbJhiq9DxgLJ3tSTj5A643WM8ipUDGNZCZgrdXyOAr7AbfrKC9WMUfnZKiOZPR5ZLuGVtd_2iGo6zuS8",
+                "components": "buttons",
               }}
             >
               <PayPalButtons
+                style={{ layout: "vertical" }}
                 createOrder={(data, actions) => {
                   return actions.order.create({
                     purchase_units: [
@@ -220,11 +232,11 @@ const CheckoutProduct = () => {
                   });
                 }}
                 onApprove={(data, actions) => {
-                  return actions.order.capture().then(async (details) => {
-                    console.log(details);
-                    message.success("Payment Successful!");
-                    handleSubmitOrder();
-                  });
+                  return actions.order.capture().then(handlePayPalSuccess);
+                }}
+                onError={(err) => {
+                  console.error(err);
+                  message.error("Payment failed.");
                 }}
               />
             </PayPalScriptProvider>

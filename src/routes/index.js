@@ -28,6 +28,7 @@ import Customer from "../pages/admin/user";
 import Contact from "../pages/contact";
 import About from "../pages/about";
 import AllProduct from "../pages/home/product";
+import Thank from "../pages/home/thank";
 
 const routes = [
   {
@@ -93,6 +94,11 @@ const routes = [
   {
     path: "/checkout/:id",
     component: CheckoutProduct,
+    layout: UserLayout,
+  },
+  {
+    path: "/thank-for-order/:id",
+    component: Thank,
     layout: UserLayout,
   },
   {
