@@ -1,4 +1,4 @@
-import { get, post, put } from "./index";
+import { get, post, put, del } from "./index";
 
 export const getVouchers = async () => {
   return get("/vouchers");
@@ -15,3 +15,7 @@ export const searchVoucher = async (code) => {
 export const updateVoucher = async (id, data) => {
   return put(`/vouchers/${id}`, data);
 };
+
+export const deleteVoucher = async (id) => {
+  return del(`/vouchers/${id}`);
+}

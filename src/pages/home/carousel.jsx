@@ -58,7 +58,7 @@ const ProductCarousel = ({ title, heading, fetchProducts }) => {
                 <img
                   src={product.imageUrls?.[0]}
                   alt={product.name}
-                  className="w-full h-48 object-cover rounded-lg mb-4"
+                  className="w-full h-80 object-cover rounded-lg mb-4"
                 />
                 <div className="product-info">
                   <h3 className="text-lg font-medium mb-2">{product.name}</h3>

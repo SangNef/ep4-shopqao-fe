@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Table, Typography, Button, Modal, Breadcrumb } from "antd";
-import { getVouchers } from "../../../api/voucher";
+import { deleteVoucher, getVouchers } from "../../../api/voucher";
 import CreateVoucher from "./create"; // Import the CreateVoucher component
 import EditVoucher from "./edit"; // Import the EditVoucher component
 
@@ -10,6 +10,7 @@ const Voucher = () => {
   const [vouchers, setVouchers] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false); // State to manage the modal visibility
   const [isEditModalVisible, setIsEditModalVisible] = useState(false); // State for Edit Modal
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false); // State for Delete Confirmation Modal
   const [selectedVoucher, setSelectedVoucher] = useState(null); // State to store the selected voucher
 
   const fetchVouchers = async () => {
@@ -24,7 +25,6 @@ const Voucher = () => {
 
   useEffect(() => {
     fetchVouchers();
-
     document.title = "XShop - Vouchers";
   }, []);
 
@@ -43,6 +43,29 @@ const Voucher = () => {
 
   const handleEditModalClose = () => {
     setIsEditModalVisible(false); // Hide the Edit Modal
+    setSelectedVoucher(null); // Clear the selected voucher
+  };
+
+  const showDeleteConfirmation = (voucher) => {
+    setSelectedVoucher(voucher); // Set the selected voucher for deletion
+    setIsDeleteModalVisible(true); // Show the delete confirmation modal
+  };
+
+  const handleDeleteVoucher = async () => {
+    if (selectedVoucher) {
+      try {
+        await deleteVoucher(selectedVoucher.id);
+        fetchVouchers();
+        setIsDeleteModalVisible(false); // Hide the modal after deletion
+        setSelectedVoucher(null); // Clear the selected voucher
+      } catch (error) {
+        console.error("Failed to delete voucher:", error);
+      }
+    }
+  };
+
+  const handleDeleteModalClose = () => {
+    setIsDeleteModalVisible(false); // Hide the modal
     setSelectedVoucher(null); // Clear the selected voucher
   };
 
@@ -78,9 +101,14 @@ const Voucher = () => {
       title: "Action",
       key: "action",
       render: (_, record) => (
-        <Button type="link" onClick={() => handleEdit(record)}>
-          Edit
-        </Button>
+        <>
+          <Button type="link" onClick={() => handleEdit(record)}>
+            Edit
+          </Button>
+          <Button type="link" danger onClick={() => showDeleteConfirmation(record)}>
+            Delete
+          </Button>
+        </>
       ),
     },
   ];
@@ -129,6 +157,20 @@ const Voucher = () => {
             onVoucherUpdated={fetchVouchers} // Function to re-fetch the vouchers after updating
           />
         )}
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        title="Confirm Delete"
+        visible={isDeleteModalVisible}
+        onOk={handleDeleteVoucher} // Confirm deletion
+        onCancel={handleDeleteModalClose} // Cancel deletion
+        okText="Delete"
+        okButtonProps={{ danger: true }}
+        cancelText="Cancel"
+      >
+        <p>Are you sure you want to delete this voucher?</p>
+        <p><strong>{selectedVoucher?.code}</strong></p>
       </Modal>
     </div>
   );

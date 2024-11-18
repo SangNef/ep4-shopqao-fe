@@ -63,7 +63,7 @@ const Kid = () => {
             <Link
               key={product.id}
               to={`/product-detail/${product.id}`}
-              className="border border-gray-300 rounded-lg p-4 bg-white shadow-lg relative min-h-[350px] max-h-[400px] flex flex-col justify-between"
+              className="border border-gray-300 rounded-lg p-4 bg-white shadow-lg relative min-h-[350px] flex flex-col justify-between"
             >
               {/* {product.category && (
                 <Badge
@@ -79,7 +79,7 @@ const Kid = () => {
               <img
                 src={product.imageUrls[0]}
                 alt={product.name}
-                className="w-full h-[200px] object-cover rounded-lg mb-4"
+                className="w-full h-80 object-cover rounded-lg mb-4"
               />
               <h3 className="text-xl font-medium mb-2">{product.name}</h3>
               <p className="font-semibold text-lg text-gray-600">${product.price}</p>
