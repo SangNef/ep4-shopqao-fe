@@ -1,27 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { cancelOrder, getOrderById, updateOrder } from '../../../api/order';
+import { acpCancelOrder, cancelOrder, getOrderById, updateOrder } from '../../../api/order';
 import { Card, Col, Row, Button, Typography, Divider } from 'antd';
 import { getProductById } from '../../../api/product';
 
 const { Title, Text } = Typography;
 
 const statusText = {
-    0: 'Pending',
-    1: 'Confirmed',
-    2: 'Shipping',
-    3: 'Delivered',
-    4: 'Completed',
-    5: 'Canceled'
+    1: "Pending",
+    2: "Confirmed",
+    3: "Shipping",
+    4: "Delivered",
+    5: "Completed",
+    6: "Pending Cancel",
+    7: "Cancelled",
 };
 
 const statusColors = {
-    0: '#ffc107',
-    1: '#17a2b8',
-    2: '#007bff',
-    3: '#28a745',
-    4: '#fd7e14',
-    5: '#dc3545'
+    1: "#ffc107",
+    2: "#17a2b8",
+    3: "#007bff",
+    4: "#28a745",
+    5: "#fd7e14",
+    6: "#6c757d",
+    7: "#dc3545",
 };
 
 const OrderDetail = () => {
@@ -65,6 +67,11 @@ const OrderDetail = () => {
         fetchOrder();
     };
 
+    const handleAcpCancelOrder = async () => {
+        await acpCancelOrder(id);
+        fetchOrder();
+    }
+
     useEffect(() => {
         fetchOrder();
     }, [id]);
@@ -105,7 +112,7 @@ const OrderDetail = () => {
                             {statusText[order.status]}
                         </Text>
                         <br />
-                        {order.status < 4 && (
+                        {order.status < 4 || order.status === 6 && (
                             <Button type="primary" onClick={handleUpdateStatus} style={{ marginTop: '12px' }}>
                                 Update Status
                             </Button>
@@ -113,6 +120,11 @@ const OrderDetail = () => {
                         {order.status === 0 && (
                             <Button danger onClick={handleCancelOrder} style={{ marginTop: '12px', marginLeft: '8px' }}>
                                 Cancel Order
+                            </Button>
+                        )}
+                        {order.status === 6 && (
+                            <Button color="primary" variant="outlined" onClick={handleAcpCancelOrder} style={{ marginTop: '12px', marginLeft: '8px' }}>
+                                Accept Cancel
                             </Button>
                         )}
                     </Card>

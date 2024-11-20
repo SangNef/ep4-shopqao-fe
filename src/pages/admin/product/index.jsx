@@ -192,6 +192,14 @@ const Product = () => {
       render: (category) => category?.name,
     },
     {
+      title: "Stock", // New stock column
+      key: "stock",
+      render: (text, record) => {
+        const totalStock = record.variants?.reduce((sum, variant) => sum + variant.qty, 0); // Sum up the quantity from all variants
+        return totalStock || 0; // Display the total stock or 0 if no variants
+      },
+    },
+    {
       title: "Actions",
       key: "actions",
       render: (text, record) => (

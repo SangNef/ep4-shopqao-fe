@@ -23,7 +23,7 @@ const Contact = () => {
               <div className="lg:w-1/2 mb-8 lg:mb-0">
                 <div className="w-full h-96">
                   <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d90186.37207676383!2d-80.13495239500924!3d25.9317678710111!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88d9ad1877e4a82d%3A0xa891714787d1fb5e!2sPier%20Park!5e1!3m2!1sen!2sth!4v1637512439384!5m2!1sen!2sth"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.0969490732964!2d105.77971427584129!3d21.02880648777588!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x313454b32b842a37%3A0xe91a56573e7f9a11!2zOGEgVMO0biBUaOG6pXQgVGh1eeG6v3QsIE3hu7kgxJDDrG5oLCBD4bqndSBHaeG6pXksIEjDoCBO4buZaSAxMDAwMDAsIFZp4buHdCBOYW0!5e0!3m2!1svi!2s!4v1732111922443!5m2!1svi!2s"
                     width="100%"
                     height="100%"
                     frameBorder="0"

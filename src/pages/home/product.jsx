@@ -2,11 +2,13 @@ import React, { useEffect, useState } from "react";
 import { getProducts } from "../../api/product";
 import { Link, useSearchParams } from "react-router-dom";
 import { Badge, Select } from "antd";
+import { getCategories } from "../../api/category";
 
 const { Option } = Select;
 
 const AllProduct = () => {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [category, setCategory] = useState("");
   const [gender, setGender] = useState("");
   const [sortDirection, setSortDirection] = useState("asc");
@@ -21,8 +23,16 @@ const AllProduct = () => {
     }
   };
 
+  const fetchCategories = async () => {
+    const response = await getCategories();
+    if (response) {
+      setCategories(response);
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
   }, [category, gender, sortDirection, searchParam]);
 
   useEffect(() => {
@@ -33,20 +43,20 @@ const AllProduct = () => {
       {searchParam && <h2 className="text-2xl font-semibold mb-4">Search results for "{searchParam}"</h2>}
       <div className="flex gap-4">
         <div className="!w-80">
-          {/* <Select
+          <Select
             value={category}
             onChange={(value) => setCategory(value)}
             placeholder="Select Category"
             className="w-full"
             allowClear
           >
-            <Option value="">All Categories</Option>
-            <Option value="tshirt">T-Shirts</Option>
-            <Option value="jeans">Jeans</Option>
-            <Option value="jackets">Jackets</Option>
-            <Option value="shoes">Shoes</Option>
-            <Option value="accessories">Accessories</Option>
-          </Select> */}
+            <Option value="">All categories</Option>
+            {categories?.map((category) => (
+              <Option key={category.id} value={category.name}>
+                {category.name}
+              </Option>
+            ))}
+          </Select>
 
           <Select
             value={gender}

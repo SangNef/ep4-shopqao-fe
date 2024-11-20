@@ -35,3 +35,7 @@ export const cancelOrder = async (id) => {
 export const getOrdersByUser = async (id) => {
   return get(`/orders/user/${id}`);
 };
+
+export const acpCancelOrder = async (id) => {
+  return put(`/orders/accept-cancel/${id}`);
+};

@@ -42,7 +42,7 @@ const Header = () => {
   };
 
   return (
-    <div className="bg-white shadow-md">
+    <div className="bg-white shadow-md sticky top-0 z-[9999]">
       <div className="max-w-6xl mx-auto flex items-center justify-between p-4">
         <Link to="/" className="flex items-center">
           <div className="text-2xl font-bold">X-Shop</div>

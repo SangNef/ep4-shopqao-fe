@@ -9,7 +9,8 @@ const statusText = {
   3: "Shipping",
   4: "Delivered",
   5: "Completed",
-  6: "Canceled",
+  6: "Pending Cancel",
+  7: "Cancelled",
 };
 
 const statusColors = {
@@ -18,7 +19,8 @@ const statusColors = {
   3: "#007bff",
   4: "#28a745",
   5: "#fd7e14",
-  6: "#dc3545",
+  6: "#6c757d",
+  7: "#dc3545",
 };
 
 const { Title } = Typography;

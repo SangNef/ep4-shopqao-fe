@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Table } from "antd"; // Import the Table component from Ant Design
-import { getOrdersByUser } from "../../api/order";
+import { Button, Table } from "antd"; // Import the Table component from Ant Design
+import { cancelOrder, getOrdersByUser } from "../../api/order";
 
 const UserOrder = () => {
   const [orders, setOrders] = useState([]);
@@ -23,6 +23,12 @@ const UserOrder = () => {
       setShowBanner(true); // Show the banner if success=true is present
     }
   }, []);
+
+  const handleCancelOrder = async (orderId) => {
+    // Call the cancelOrder API function
+    await cancelOrder(orderId);
+    fetchOrders();
+  }
 
   // Define the columns for the Ant Design table
   const columns = [
@@ -59,7 +65,9 @@ const UserOrder = () => {
           case 5:
             return "Completed";
           case 6:
-            return "Canceled";
+            return "Pending Cancel";
+          case 7:
+            return "Cancelled";
           default:
             return "Unknown";
         }
@@ -84,6 +92,15 @@ const UserOrder = () => {
         </ul>
       ),
     },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (text, record) => (
+        <>
+          {record.status === 1 && <Button onClick={() => handleCancelOrder(record.id)} color="danger" variant="solid">Cancel</Button>}
+        </>
+      )
+    }
   ];
 
   return (
