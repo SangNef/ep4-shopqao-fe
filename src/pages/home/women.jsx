@@ -41,10 +41,10 @@ const Women = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h2 className="text-2xl font-semibold mb-4">Men's Products</h2>
+      <h2 className="text-2xl font-semibold mb-4">Women's Products</h2>
       <div className="flex gap-4">
         <div className="w-80">
-          {/* <Select
+          <Select
             value={category}
             onChange={(value) => setCategory(value)}
             placeholder="Select Category"
@@ -56,7 +56,7 @@ const Women = () => {
                 {category.name}
               </Option>
             ))}
-          </Select> */}
+          </Select>
 
           <Select
             value={sortDirection}

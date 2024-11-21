@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Breadcrumb, Table, Typography } from "antd";
+import { Breadcrumb, Table, Typography, Select } from "antd";
 import { getOrders } from "../../../api/order";
 import { useNavigate } from "react-router-dom";
 
@@ -27,11 +27,13 @@ const { Title } = Typography;
 
 const Order = () => {
   const [orders, setOrders] = useState([]);
+  const [selectedStatus, setSelectedStatus] = useState(null);
   const navigate = useNavigate();
 
-  const fetchOrders = async () => {
+  // Fetch orders based on selected status
+  const fetchOrders = async (status = null) => {
     try {
-      const response = await getOrders();
+      const response = await getOrders(status); // Pass selected status to the API
       setOrders(response);
     } catch (error) {
       console.error("Failed to fetch orders:", error);
@@ -39,10 +41,15 @@ const Order = () => {
   };
 
   useEffect(() => {
-    fetchOrders();
-
+    fetchOrders(); // Fetch all orders initially
     document.title = "XShop - Orders";
   }, []);
+
+  // Handle status change
+  const handleStatusChange = (value) => {
+    setSelectedStatus(value); // Set selected status
+    fetchOrders(value); // Fetch orders based on selected status
+  };
 
   // Define the columns for the Ant Design table
   const columns = [
@@ -88,6 +95,24 @@ const Order = () => {
         <Breadcrumb.Item>Orders</Breadcrumb.Item>
       </Breadcrumb>
       <Title level={2}>Order List</Title>
+
+      {/* Add the Select dropdown for filtering orders by status */}
+      <Select
+        defaultValue={selectedStatus}
+        style={{ width: 200, marginBottom: 20 }}
+        onChange={handleStatusChange}
+        allowClear
+        placeholder="Filter by status"
+      >
+        <Select.Option value={1}>Pending</Select.Option>
+        <Select.Option value={2}>Confirmed</Select.Option>
+        <Select.Option value={3}>Shipping</Select.Option>
+        <Select.Option value={4}>Delivered</Select.Option>
+        <Select.Option value={5}>Completed</Select.Option>
+        <Select.Option value={6}>Pending Cancel</Select.Option>
+        <Select.Option value={7}>Cancelled</Select.Option>
+      </Select>
+
       <Table
         dataSource={orders}
         columns={columns}

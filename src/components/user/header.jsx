@@ -43,7 +43,7 @@ const Header = () => {
 
   return (
     <div className="bg-white shadow-md sticky top-0 z-[9999]">
-      <div className="max-w-6xl mx-auto flex items-center justify-between p-4">
+      <div className="max-w-7xl mx-auto flex items-center justify-between p-4">
         <Link to="/" className="flex items-center">
           <div className="text-2xl font-bold">X-Shop</div>
           <div className="text-gray-600">ONLINE SHOPPING</div>
@@ -63,6 +63,9 @@ const Header = () => {
           </li>
           <li className="nav-item">
             <Link to="/unisex-product">Unisex</Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/all-product">All Products</Link>
           </li>
           <li className="nav-item">
             <Link to="/about">About</Link>

@@ -44,7 +44,7 @@ const Man = () => {
       <h2 className="text-2xl font-semibold mb-4">Men's Products</h2>
       <div className="flex gap-4">
         <div className="w-80">
-          {/* <Select
+          <Select
             value={category}
             onChange={(value) => setCategory(value)}
             placeholder="Select Category"
@@ -56,7 +56,7 @@ const Man = () => {
                 {category.name}
               </Option>
             ))}
-          </Select> */}
+          </Select>
 
           <Select
             value={sortDirection}

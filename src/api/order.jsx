@@ -4,8 +4,9 @@ export const createOrder = async (data) => {
   return post("/orders", data);
 };
 
-export const getOrders = async () => {
-  return get("/orders");
+export const getOrders = async (status) => {
+  const url = status ? `/orders?status=${status}` : '/orders'; // Nếu không có status thì lấy tất cả
+  return get(url);
 };
 
 export const getOrderById = async (id) => {

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { getKidProducts } from "../../api/product";
 import { Link } from "react-router-dom";
 import { Badge, Select } from "antd";
+import { getCategories } from "../../api/category";
 
 const { Option } = Select;
 
@@ -9,6 +10,7 @@ const Kid = () => {
   const [products, setProducts] = useState([]);
   const [category, setCategory] = useState("");
   const [sortDirection, setSortDirection] = useState("asc");
+  const [categories, setCategories] = useState([]);
 
   const fetchProducts = async () => {
     try {
@@ -19,8 +21,18 @@ const Kid = () => {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const response = await getCategories();
+      setCategories(response);
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+    }
+  }
+
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
   }, [category, sortDirection]);
 
   useEffect(() => {
@@ -32,21 +44,19 @@ const Kid = () => {
       <h2 className="text-2xl font-semibold mb-4">Kid's Products</h2>
       <div className="flex gap-4">
         <div className="w-80">
-          {/* <Select
+        <Select
             value={category}
             onChange={(value) => setCategory(value)}
             placeholder="Select Category"
             className="w-full"
             allowClear
           >
-            <Option value="">All Categories</Option>
-            <Option value="tshirt">T-Shirts</Option>
-            <Option value="jeans">Jeans</Option>
-            <Option value="jackets">Jackets</Option>
-            <Option value="shoes">Shoes</Option>
-            <Option value="accessories">Accessories</Option>
-          </Select> */}
-
+            {categories.map((category) => (
+              <Option key={category.id} value={category.name}>
+                {category.name}
+              </Option>
+            ))}
+          </Select>
           <Select
             value={sortDirection}
             onChange={(value) => setSortDirection(value)}
