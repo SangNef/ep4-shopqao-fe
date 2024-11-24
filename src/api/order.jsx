@@ -40,3 +40,11 @@ export const getOrdersByUser = async (id) => {
 export const acpCancelOrder = async (id) => {
   return put(`/orders/accept-cancel/${id}`);
 };
+
+export const returnOrder = async (id) => {
+  return put(`/orders/return/${id}`);
+};
+
+export const acpReturnOrder = async (id) => {
+  return put(`/orders/accept-return/${id}`);
+};

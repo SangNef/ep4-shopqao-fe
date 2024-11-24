@@ -192,32 +192,43 @@ const Product = () => {
       render: (category) => category?.name,
     },
     {
-      title: "Stock", // New stock column
+      title: "Stock",
       key: "stock",
       render: (text, record) => {
-        const totalStock = record.variants?.reduce((sum, variant) => sum + variant.qty, 0); // Sum up the quantity from all variants
-        return totalStock || 0; // Display the total stock or 0 if no variants
+        if (record.deletedAt) {
+          return <span style={{ color: "red" }}>Sold Out</span>;
+        }
+        const totalStock = record.variants?.reduce((sum, variant) => sum + variant.qty, 0);
+        return totalStock || 0;
       },
-    },
+    },    
     {
       title: "Actions",
       key: "actions",
       render: (text, record) => (
         <span>
-          <Button type="link" style={{ color: "#FFA500" }} icon={<EditOutlined />} onClick={() => handleEdit(record)}>
-            Edit
-          </Button>
           <Button
             type="link"
-            style={{ color: "red" }}
-            icon={<DeleteOutlined />}
-            onClick={() => showConfirmDeleteModal(record)}
+            style={{ color: "#FFA500" }}
+            icon={<EditOutlined />}
+            onClick={() => handleEdit(record)}
+            disabled={!!record.deletedAt} // Vô hiệu hóa nút Edit nếu cần
           >
-            Delete
+            Edit
           </Button>
+          {!record.deletedAt && ( // Ẩn nút Delete nếu sản phẩm đã bị xoá
+            <Button
+              type="link"
+              style={{ color: "red" }}
+              icon={<DeleteOutlined />}
+              onClick={() => showConfirmDeleteModal(record)}
+            >
+              Delete
+            </Button>
+          )}
         </span>
       ),
-    },
+    },    
   ];
 
   // Hàm để render bảng mở rộng cho variants của sản phẩm

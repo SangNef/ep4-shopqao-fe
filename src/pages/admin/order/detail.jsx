@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { acpCancelOrder, cancelOrder, getOrderById, updateOrder } from '../../../api/order';
+import { acpCancelOrder, acpReturnOrder, cancelOrder, getOrderById, updateOrder } from '../../../api/order';
 import { Card, Col, Row, Button, Typography, Divider } from 'antd';
 import { getProductById } from '../../../api/product';
 
@@ -14,6 +14,8 @@ const statusText = {
     5: "Completed",
     6: "Pending Cancel",
     7: "Cancelled",
+    8: "Return Requested",
+    9: "Returned",
 };
 
 const statusColors = {
@@ -24,6 +26,8 @@ const statusColors = {
     5: "#fd7e14",
     6: "#6c757d",
     7: "#dc3545",
+    8: "#ffc107",
+    9: "#28a745",
 };
 
 const OrderDetail = () => {
@@ -72,6 +76,11 @@ const OrderDetail = () => {
         fetchOrder();
     }
 
+    const handleAcpReturnOrder = async () => {
+        await acpReturnOrder(id);
+        fetchOrder();
+    }
+
     useEffect(() => {
         fetchOrder();
     }, [id]);
@@ -112,7 +121,7 @@ const OrderDetail = () => {
                             {statusText[order.status]}
                         </Text>
                         <br />
-                        {order.status < 4 || order.status === 6 && (
+                        {(order.status < 3 || order.status === 4 || order.status === 6) && (
                             <Button type="primary" onClick={handleUpdateStatus} style={{ marginTop: '12px' }}>
                                 Update Status
                             </Button>
@@ -125,6 +134,11 @@ const OrderDetail = () => {
                         {order.status === 6 && (
                             <Button color="primary" variant="outlined" onClick={handleAcpCancelOrder} style={{ marginTop: '12px', marginLeft: '8px' }}>
                                 Accept Cancel
+                            </Button>
+                        )}
+                        {order.status === 8 && (
+                            <Button color="primary" variant="outlined" onClick={handleAcpReturnOrder} style={{ marginTop: '12px', marginLeft: '8px' }}>
+                                Accept Return
                             </Button>
                         )}
                     </Card>

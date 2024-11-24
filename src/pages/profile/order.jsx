@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button, Table } from "antd"; // Import the Table component from Ant Design
-import { cancelOrder, getOrdersByUser } from "../../api/order";
+import { cancelOrder, getOrdersByUser, returnOrder, updateOrder } from "../../api/order";
 
 const UserOrder = () => {
   const [orders, setOrders] = useState([]);
@@ -27,6 +27,18 @@ const UserOrder = () => {
   const handleCancelOrder = async (orderId) => {
     // Call the cancelOrder API function
     await cancelOrder(orderId);
+    fetchOrders();
+  };
+
+  const handleUpdateOrder = async (orderId) => {
+    // Call the updateOrder API function to update the order status to Delivered
+    await updateOrder(orderId);
+    fetchOrders();
+  };
+
+  const handleReturnOrder = async (orderId) => {
+    // Call the returnOrder API function to request a return for the order
+    await returnOrder(orderId);
     fetchOrders();
   }
 
@@ -68,6 +80,10 @@ const UserOrder = () => {
             return "Pending Cancel";
           case 7:
             return "Cancelled";
+          case 8:
+            return "Return Requested";
+          case 9:
+            return "Returned";
           default:
             return "Unknown";
         }
@@ -97,10 +113,24 @@ const UserOrder = () => {
       key: "actions",
       render: (text, record) => (
         <>
-          {record.status === 1 && <Button onClick={() => handleCancelOrder(record.id)} color="danger" variant="solid">Cancel</Button>}
+          {record.status === 1 && (
+            <Button onClick={() => handleCancelOrder(record.id)} color="danger" variant="solid">
+              Cancel
+            </Button>
+          )}
+          {(record.status === 5 || record.status === 4) && (
+            <Button color="primary" variant="outlined" onClick={() => handleReturnOrder(record.id)}>
+              Return
+            </Button>
+          )}
+          {record.status === 3 && (
+            <Button color="primary" variant="outlined" onClick={() => handleUpdateOrder(record.id)}>
+              Received
+            </Button>
+          )}
         </>
-      )
-    }
+      ),
+    },
   ];
 
   return (
