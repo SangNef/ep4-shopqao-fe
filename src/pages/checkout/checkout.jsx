@@ -117,7 +117,8 @@ const Checkout = () => {
         setVoucherDetails(response);
         message.success("Voucher applied successfully!");
 
-        const discountAmount = (response.discount / 100) * products[0].price;
+        const discountValue = (response.discount / 100) * products[0].price;
+        const discountAmount = Math.min(discountValue, response.maxDiscount);
         const newPrice = products[0].price - discountAmount;
         setDiscountedPrice(newPrice);
       } else {
@@ -187,7 +188,8 @@ const Checkout = () => {
     return sum;
   }, 0);
 
-  const discountAmount = voucherDetails ? (voucherDetails.discount / 100) * totalAmount : 0;
+  const discountValue = voucherDetails ? (voucherDetails.discount / 100) * totalAmount : 0;
+  const discountAmount = Math.min(discountValue, voucherDetails?.maxDiscount);
   const finalTotalAmount = totalAmount - discountAmount;
 
   return (
@@ -318,7 +320,7 @@ const Checkout = () => {
             {voucherDetails && (
               <div className="voucher-details mt-2">
                 <p>Voucher Applied: {voucherDetails.code}</p>
-                <p>Discount: {voucherDetails.discount}%</p>
+                <p>Discount: {voucherDetails.discount}% (max {voucherDetails.maxDiscount})</p>
               </div>
             )}
           </div>

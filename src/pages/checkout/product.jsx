@@ -57,7 +57,8 @@ const CheckoutProduct = () => {
 
   const loadPaypalScript = () => {
     const script = document.createElement("script");
-    script.src = "https://www.paypal.com/sdk/js?client-id=AbJhiq9DxgLJ3tSTj5A643WM8ipUDGNZCZgrdXyOAr7AbfrKC9WMUfnZKiOZPR5ZLuGVtd_2iGo6zuS8"; // Use your actual client ID here
+    script.src =
+      "https://www.paypal.com/sdk/js?client-id=AbJhiq9DxgLJ3tSTj5A643WM8ipUDGNZCZgrdXyOAr7AbfrKC9WMUfnZKiOZPR5ZLuGVtd_2iGo6zuS8"; // Use your actual client ID here
     script.async = true;
     script.onload = () => setPaypalLoaded(true);
     script.onerror = () => console.error("Failed to load PayPal script");
@@ -102,13 +103,16 @@ const CheckoutProduct = () => {
         setVoucherDetails(response);
         message.success("Voucher applied successfully!");
 
-        const discountAmount = (response.discount / 100) * product.price;
-        const newPrice = product.price - discountAmount;
-        setDiscountedPrice(newPrice);
+        // Tính discount amount
+        const discountValue = (response.discount / 100) * product.price * quantity;
+        const discountAmount = Math.min(discountValue, response.maxDiscount);
+        const newPrice = product.price * quantity - discountAmount;
+
+        setDiscountedPrice(newPrice); // Cập nhật giá sau giảm
       } else {
         message.error("Voucher not found or invalid.");
         setVoucherDetails(null);
-        setDiscountedPrice(product.price);
+        setDiscountedPrice(product.price * quantity); // Reset giá
       }
     } catch (error) {
       console.error("Failed to search voucher:", error);
@@ -116,8 +120,9 @@ const CheckoutProduct = () => {
     }
   };
 
-  const discountAmount = voucherDetails ? (voucherDetails.discount / 100) * (product.price * quantity) : 0;
-  const finalTotalAmount = product.price * quantity - discountAmount;
+  const discountValue = voucherDetails ? (voucherDetails.discount / 100) * (product.price * quantity) : 0;
+  const discountAmount = Math.min(discountValue, voucherDetails?.maxDiscount);
+  const finalTotalAmount = discountedPrice ?? product.price * quantity;
 
   const handlePayPalSuccess = async (details) => {
     console.log("Payment completed successfully:", details);
@@ -215,7 +220,7 @@ const CheckoutProduct = () => {
             <PayPalScriptProvider
               options={{
                 "client-id": "AbJhiq9DxgLJ3tSTj5A643WM8ipUDGNZCZgrdXyOAr7AbfrKC9WMUfnZKiOZPR5ZLuGVtd_2iGo6zuS8",
-                "components": "buttons",
+                components: "buttons",
               }}
             >
               <PayPalButtons
@@ -279,7 +284,8 @@ const CheckoutProduct = () => {
             <p className="text-lg font-bold">Subtotal: ${product.price * quantity}</p>
             {voucherDetails && (
               <p className="text-sm text-green-600">
-                Discount: {voucherDetails.discount}% off = -${discountAmount.toFixed(2)}
+                Discount: {voucherDetails.discount}% off (max ${voucherDetails.maxDiscount}) = -$
+                {discountAmount.toFixed(2)}
               </p>
             )}
             <p className="text-lg font-bold">Total: ${finalTotalAmount.toFixed(2)}</p>

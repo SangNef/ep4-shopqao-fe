@@ -3,6 +3,7 @@ import { Table, Typography, Button, Modal, Breadcrumb } from "antd";
 import { deleteVoucher, getVouchers } from "../../../api/voucher";
 import CreateVoucher from "./create"; // Import the CreateVoucher component
 import EditVoucher from "./edit"; // Import the EditVoucher component
+import dayjs from "dayjs";
 
 const { Title } = Typography;
 
@@ -91,6 +92,17 @@ const Voucher = () => {
       title: "Quantity",
       dataIndex: "qty",
       key: "qty",
+    },
+    {
+      title: "End Date",
+      dataIndex: "expirationDate",
+      key: "expirationDate",
+      render: (date) => (date ? dayjs(date).format("DD/MM/YYYY") : "N/A"),
+    },
+    {
+      title: "Max Discount",
+      dataIndex: "maxDiscount",
+      key: "maxDiscount",
     },
     {
       title: "Description",
